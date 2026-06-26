@@ -107,6 +107,7 @@ export class CookidooHttpClient implements ICookidooClient {
   private readonly localization: CookidooLocalization;
   private readonly jar: CookieJar;
   private readonly http: AxiosInstance;
+  private readonly debug = process.env.COOKIDOO_DEBUG === 'true';
 
   private loggedIn = false;
   private loginInFlight: Promise<void> | null = null;
@@ -162,9 +163,22 @@ export class CookidooHttpClient implements ICookidooClient {
     const setCookies = response.headers['set-cookie'] as string[] | undefined;
     if (setCookies) {
       for (const raw of setCookies) {
-        await this.jar
-          .setCookie(raw, url, { ignoreError: true })
-          .catch(() => undefined);
+        try {
+          await this.jar.setCookie(raw, url);
+          if (this.debug) {
+            this.logger.debug(
+              `  set-cookie OK  (${url}): ${raw.split(';')[0]}`,
+            );
+          }
+        } catch (error) {
+          // Mirrors aiohttp's lenient jar: a cookie that does not match the
+          // responding host is dropped rather than aborting the flow.
+          if (this.debug) {
+            this.logger.debug(
+              `  set-cookie DROP (${url}): ${raw.split(';')[0]} — ${(error as Error).message}`,
+            );
+          }
+        }
       }
     }
 
@@ -197,6 +211,18 @@ export class CookidooHttpClient implements ICookidooClient {
 
       const { status } = response;
       const location = response.headers['location'] as string | undefined;
+
+      if (this.debug) {
+        const cookieNames =
+          (response.headers['set-cookie'] as string[] | undefined)
+            ?.map((c) => c.split('=')[0])
+            .join(', ') ?? '-';
+        this.logger.debug(
+          `[hop ${hop}] ${currentMethod.toUpperCase()} ${currentUrl} -> ${status}` +
+            `${location ? ` -> ${location}` : ''} set-cookie:[${cookieNames}]`,
+        );
+      }
+
       if (status >= 300 && status < 400 && location) {
         currentUrl = new URL(location, currentUrl).toString();
         // The redirect target carries its own query string.
@@ -281,21 +307,27 @@ export class CookidooHttpClient implements ICookidooClient {
 
     const requestId = this.extractRequestId(loginHtml);
 
+    let postStatus: number;
     try {
-      await this.sendFollowingRedirects('post', CIAM_LOGIN_SRV_URL, {
-        data: new URLSearchParams({
-          requestId,
-          username: this.config.email,
-          password: this.config.password,
-        }),
-        responseType: 'text',
-        headers: { Accept: BROWSER_ACCEPT },
-      });
+      const resp = await this.sendFollowingRedirects(
+        'post',
+        CIAM_LOGIN_SRV_URL,
+        {
+          data: new URLSearchParams({
+            requestId,
+            username: this.config.email,
+            password: this.config.password,
+          }),
+          responseType: 'text',
+          headers: { Accept: BROWSER_ACCEPT },
+        },
+      );
+      postStatus = resp.status;
     } catch (error) {
       throw this.wrapNetworkError(error, 'submit credentials');
     }
 
-    await this.verifyAuthCookies();
+    await this.verifyAuthCookies(postStatus);
     this.loggedIn = true;
     this.logger.log('Cookidoo login successful');
   }
@@ -316,16 +348,39 @@ export class CookidooHttpClient implements ICookidooClient {
     return match[1];
   }
 
-  private async verifyAuthCookies(): Promise<void> {
-    const cookies = await this.jar.getCookies(this.apiEndpoint);
-    const names = new Set(cookies.map((cookie) => cookie.key));
+  private async verifyAuthCookies(postStatus: number): Promise<void> {
+    // Like the upstream library, check every cookie in the jar regardless of
+    // domain (not just the ones scoped to the API host).
+    const serialized = await this.jar.serialize();
+    const collected = serialized.cookies.map((cookie) => ({
+      key: cookie.key,
+      domain: cookie.domain ?? '?',
+    }));
+    const names = new Set(collected.map((cookie) => cookie.key));
     const missing = REQUIRED_AUTH_COOKIES.filter((name) => !names.has(name));
-    if (missing.length > 0) {
-      throw new CookidooAuthException(
-        'Login failed: authentication cookies were not set. ' +
-          'Please check COOKIDOO_EMAIL and COOKIDOO_PASSWORD.',
+
+    if (missing.length === 0) {
+      return;
+    }
+
+    const summary =
+      collected.length > 0
+        ? collected.map((cookie) => `${cookie.key}@${cookie.domain}`).join(', ')
+        : '(none)';
+
+    if (this.debug) {
+      this.logger.warn(
+        `Login verification failed. POST status ${postStatus}. Cookies in jar: ${summary}`,
       );
     }
+
+    throw new CookidooAuthException(
+      `Login failed: missing session cookies [${missing.join(', ')}] ` +
+        `(credentials POST returned ${postStatus}). ` +
+        `Cookies collected during the flow: ${summary}. ` +
+        'If this list is empty the credentials were likely rejected — check ' +
+        'COOKIDOO_EMAIL / COOKIDOO_PASSWORD; otherwise the OAuth flow changed.',
+    );
   }
 
   // ---------------------------------------------------------------------------
