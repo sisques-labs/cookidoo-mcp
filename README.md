@@ -125,6 +125,9 @@ Authentication is handled by the NestJS process via `COOKIDOO_EMAIL` /
 | `cookidoo_add_additional_items` | command | Add free-text items to the list |
 | `cookidoo_remove_additional_items` | command | Remove free-text items from the list |
 | `cookidoo_clear_shopping_list` | command | Empty the shopping list |
+| `cookidoo_get_calendar_week` | query | Recipes planned on the meal-planner calendar for a week |
+| `cookidoo_add_recipes_to_calendar` | command | Add recipes to the meal-planner calendar on a day |
+| `cookidoo_remove_recipe_from_calendar` | command | Remove a recipe from the meal-planner calendar on a day |
 
 ### Adding a tool
 
@@ -137,9 +140,10 @@ Authentication is handled by the NestJS process via `COOKIDOO_EMAIL` /
 
 ## Not yet migrated
 
-The upstream library also covers custom recipes, collections (managed/custom)
-and the meal-planning calendar. These are intentionally left out of this first
-"core" migration and can be added following the steps above.
+The upstream library also covers custom recipes and collections
+(managed/custom). These are intentionally left out of this migration and can be
+added following the steps above. The meal-planning calendar (add/list/remove
+recipes on your week) is now covered by the `cookidoo_*_calendar*` tools.
 
 ## License
 

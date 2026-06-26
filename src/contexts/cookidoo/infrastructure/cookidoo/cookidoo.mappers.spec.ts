@@ -1,6 +1,7 @@
 import { CookidooLocalization } from '@core/config/cookidoo.config';
 import {
   additionalItemFromJson,
+  calendarDayFromJson,
   constructRecipeUrl,
   ingredientItemFromJson,
   recipeDetailsFromJson,
@@ -207,6 +208,59 @@ describe('cookidoo mappers', () => {
       );
 
       expect(result.total).toBe(1);
+    });
+  });
+
+  describe('calendarDayFromJson', () => {
+    it('merges regular and custom recipes and maps their fields', () => {
+      const result = calendarDayFromJson(
+        {
+          id: '2026-06-26',
+          title: 'Friday',
+          recipes: [
+            {
+              id: 'r1',
+              title: 'Soup',
+              totalTime: 1800,
+              assets: { images: { square: 'http://img/{transformation}.jpg' } },
+            },
+          ],
+          customerRecipes: [{ id: 'c1', title: 'My dish', totalTime: null }],
+          customerRecipeIds: ['c1'],
+        },
+        localization,
+      );
+
+      expect(result.id).toBe('2026-06-26');
+      expect(result.title).toBe('Friday');
+      expect(result.recipes).toHaveLength(2);
+      expect(result.recipes[0]).toMatchObject({
+        id: 'r1',
+        name: 'Soup',
+        totalTime: 1800,
+        url: 'https://cookidoo.ch/recipes/recipe/de-CH/r1',
+      });
+      expect(result.recipes[0].thumbnail).toContain(
+        't_web_shared_recipe_221x240',
+      );
+      expect(result.recipes[1]).toMatchObject({
+        id: 'c1',
+        name: 'My dish',
+        totalTime: null,
+        thumbnail: null,
+        image: null,
+      });
+      expect(result.customerRecipeIds).toEqual(['c1']);
+    });
+
+    it('defaults missing recipe collections to empty arrays', () => {
+      const result = calendarDayFromJson(
+        { id: '2026-06-27', title: 'Saturday', recipes: [] },
+        localization,
+      );
+
+      expect(result.recipes).toEqual([]);
+      expect(result.customerRecipeIds).toEqual([]);
     });
   });
 });

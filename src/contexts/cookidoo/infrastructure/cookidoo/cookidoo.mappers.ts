@@ -15,6 +15,10 @@ import {
   CookidooIngredientItem,
 } from '../../domain/types/cookidoo-shopping-list.type';
 import {
+  CookidooCalendarDay,
+  CookidooCalendarDayRecipe,
+} from '../../domain/types/cookidoo-calendar.type';
+import {
   IMAGE_TRANSFORMATION,
   THUMBNAIL_TRANSFORMATION,
 } from './cookidoo.constants';
@@ -187,6 +191,46 @@ export function recipeDetailsFromJson(
     thumbnail,
     image,
     url: constructRecipeUrl(localization, recipe.id),
+  };
+}
+
+/** Map a single recipe planned on a calendar day. */
+export function calendarDayRecipeFromJson(
+  recipe: Json,
+  localization: CookidooLocalization,
+): CookidooCalendarDayRecipe {
+  const images = recipe.assets?.images;
+  const [thumbnail, image] = extractImages(images ? [images] : undefined);
+  const totalTime =
+    recipe.totalTime === undefined || recipe.totalTime === null
+      ? null
+      : Number(recipe.totalTime);
+  return {
+    id: recipe.id,
+    name: recipe.title,
+    totalTime,
+    thumbnail,
+    image,
+    url: constructRecipeUrl(localization, recipe.id),
+  };
+}
+
+/** Map a single day of the meal-planner calendar, merging custom recipes. */
+export function calendarDayFromJson(
+  day: Json,
+  localization: CookidooLocalization,
+): CookidooCalendarDay {
+  const recipes: Json[] = day.recipes ?? [];
+  const customerRecipes: Json[] = day.customerRecipes ?? [];
+  return {
+    id: day.id,
+    title: day.title,
+    recipes: [...recipes, ...customerRecipes].map((recipe) =>
+      calendarDayRecipeFromJson(recipe, localization),
+    ),
+    customerRecipeIds: Array.isArray(day.customerRecipeIds)
+      ? day.customerRecipeIds
+      : [],
   };
 }
 

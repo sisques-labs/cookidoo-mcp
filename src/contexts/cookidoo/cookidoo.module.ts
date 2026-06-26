@@ -15,6 +15,9 @@ import { ShoppingListRemoveRecipeIngredientsCommandHandler } from './application
 import { ShoppingListAddAdditionalItemsCommandHandler } from './application/commands/shopping-list-add-additional-items/shopping-list-add-additional-items.handler';
 import { ShoppingListRemoveAdditionalItemsCommandHandler } from './application/commands/shopping-list-remove-additional-items/shopping-list-remove-additional-items.handler';
 import { ShoppingListClearCommandHandler } from './application/commands/shopping-list-clear/shopping-list-clear.handler';
+import { CalendarFindWeekRecipesQueryHandler } from './application/queries/calendar-find-week-recipes/calendar-find-week-recipes.handler';
+import { CalendarAddRecipesCommandHandler } from './application/commands/calendar-add-recipes/calendar-add-recipes.handler';
+import { CalendarRemoveRecipeCommandHandler } from './application/commands/calendar-remove-recipe/calendar-remove-recipe.handler';
 import { AccountGetUserInfoMcpTool } from './transport/mcp/tools/account-get-user-info.tool';
 import { SubscriptionGetActiveMcpTool } from './transport/mcp/tools/subscription-get-active.tool';
 import { RecipeSearchMcpTool } from './transport/mcp/tools/recipe-search.tool';
@@ -27,6 +30,9 @@ import { ShoppingListRemoveRecipeIngredientsMcpTool } from './transport/mcp/tool
 import { ShoppingListAddAdditionalItemsMcpTool } from './transport/mcp/tools/shopping-list-add-additional-items.tool';
 import { ShoppingListRemoveAdditionalItemsMcpTool } from './transport/mcp/tools/shopping-list-remove-additional-items.tool';
 import { ShoppingListClearMcpTool } from './transport/mcp/tools/shopping-list-clear.tool';
+import { CalendarGetWeekMcpTool } from './transport/mcp/tools/calendar-get-week.tool';
+import { CalendarAddRecipesMcpTool } from './transport/mcp/tools/calendar-add-recipes.tool';
+import { CalendarRemoveRecipeMcpTool } from './transport/mcp/tools/calendar-remove-recipe.tool';
 
 const QUERY_HANDLERS = [
   AccountFindUserInfoQueryHandler,
@@ -36,6 +42,7 @@ const QUERY_HANDLERS = [
   ShoppingListFindRecipesQueryHandler,
   ShoppingListFindIngredientItemsQueryHandler,
   ShoppingListFindAdditionalItemsQueryHandler,
+  CalendarFindWeekRecipesQueryHandler,
 ];
 
 const COMMAND_HANDLERS = [
@@ -44,6 +51,8 @@ const COMMAND_HANDLERS = [
   ShoppingListAddAdditionalItemsCommandHandler,
   ShoppingListRemoveAdditionalItemsCommandHandler,
   ShoppingListClearCommandHandler,
+  CalendarAddRecipesCommandHandler,
+  CalendarRemoveRecipeCommandHandler,
 ];
 
 const INFRASTRUCTURE = [
@@ -63,6 +72,9 @@ const MCP_TOOLS = [
   ShoppingListAddAdditionalItemsMcpTool,
   ShoppingListRemoveAdditionalItemsMcpTool,
   ShoppingListClearMcpTool,
+  CalendarGetWeekMcpTool,
+  CalendarAddRecipesMcpTool,
+  CalendarRemoveRecipeMcpTool,
 ];
 
 @Module({

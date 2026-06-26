@@ -12,6 +12,7 @@ import {
   CookidooAdditionalItem,
   CookidooIngredientItem,
 } from '../types/cookidoo-shopping-list.type';
+import { CookidooCalendarDay } from '../types/cookidoo-calendar.type';
 
 /** DI token for the {@link ICookidooClient} port. */
 export const COOKIDOO_CLIENT = Symbol('COOKIDOO_CLIENT');
@@ -62,4 +63,28 @@ export interface ICookidooClient {
 
   /** Remove every recipe, ingredient and additional item from the list. */
   clearShoppingList(): Promise<void>;
+
+  /**
+   * Recipes planned on the meal-planner calendar for the week containing the
+   * given day (ISO `YYYY-MM-DD`). Returns one entry per day of that week.
+   */
+  getRecipesInCalendarWeek(day: string): Promise<CookidooCalendarDay[]>;
+
+  /**
+   * Add the given recipes to the meal-planner calendar on the given day (ISO
+   * `YYYY-MM-DD`). Returns the updated calendar day.
+   */
+  addRecipesToCalendar(
+    day: string,
+    recipeIds: string[],
+  ): Promise<CookidooCalendarDay>;
+
+  /**
+   * Remove a single recipe from the meal-planner calendar on the given day (ISO
+   * `YYYY-MM-DD`). Returns the updated calendar day.
+   */
+  removeRecipeFromCalendar(
+    day: string,
+    recipeId: string,
+  ): Promise<CookidooCalendarDay>;
 }

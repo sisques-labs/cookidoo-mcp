@@ -34,6 +34,12 @@ export const REMOVE_ADDITIONAL_ITEMS_PATH =
 export const COMMUNITY_PROFILE_PATH = 'community/profile';
 export const SUBSCRIPTIONS_PATH = 'ownership/subscriptions';
 
+export const RECIPES_IN_CALENDAR_WEEK_PATH =
+  'planning/{language}/api/my-week/{day}';
+export const ADD_RECIPES_TO_CALENDAR_PATH = 'planning/{language}/api/my-day';
+export const REMOVE_RECIPE_FROM_CALENDAR_PATH =
+  'planning/{language}/api/my-day/{day}/recipes/{recipe}';
+
 /** Authentication cookies the OAuth2 flow must set for a session to be valid. */
 export const REQUIRED_AUTH_COOKIES = ['_oauth2_proxy', 'v-authenticated'];
 

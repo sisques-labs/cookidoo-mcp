@@ -21,6 +21,7 @@ import {
   CookidooAdditionalItem,
   CookidooIngredientItem,
 } from '../../domain/types/cookidoo-shopping-list.type';
+import { CookidooCalendarDay } from '../../domain/types/cookidoo-calendar.type';
 import { ICookidooClient } from '../../domain/interfaces/cookidoo-client.interface';
 import {
   CookidooAuthException,
@@ -29,6 +30,7 @@ import {
 } from '../../domain/exceptions/cookidoo.exceptions';
 import {
   additionalItemFromJson,
+  calendarDayFromJson,
   ingredientItemFromJson,
   recipeDetailsFromJson,
   searchResultFromJson,
@@ -39,6 +41,7 @@ import {
 import {
   ADD_ADDITIONAL_ITEMS_PATH,
   ADD_INGREDIENT_ITEMS_FOR_RECIPES_PATH,
+  ADD_RECIPES_TO_CALENDAR_PATH,
   ADDITIONAL_ITEMS_PATH,
   CIAM_LOGIN_SRV_URL,
   COMMUNITY_PROFILE_PATH,
@@ -47,8 +50,10 @@ import {
   LOGIN_PATH,
   LOGIN_REDIRECT,
   RECIPE_PATH,
+  RECIPES_IN_CALENDAR_WEEK_PATH,
   REMOVE_ADDITIONAL_ITEMS_PATH,
   REMOVE_INGREDIENT_ITEMS_FOR_RECIPES_PATH,
+  REMOVE_RECIPE_FROM_CALENDAR_PATH,
   REQUIRED_AUTH_COOKIES,
   SHOPPING_LIST_RECIPES_PATH,
   SUBSCRIPTIONS_PATH,
@@ -217,7 +222,7 @@ export class CookidooHttpClient implements ICookidooClient {
    * become GET on 301/302/303 (as browsers do); 307/308 keep the method.
    */
   private async sendFollowingRedirects(
-    method: 'get' | 'post' | 'delete',
+    method: 'get' | 'post' | 'put' | 'delete',
     url: string,
     options: SendOptions = {},
   ): Promise<AxiosResponse> {
@@ -484,7 +489,7 @@ export class CookidooHttpClient implements ICookidooClient {
   // ---------------------------------------------------------------------------
 
   private async request<T>(
-    method: 'get' | 'post' | 'delete',
+    method: 'get' | 'post' | 'put' | 'delete',
     url: string,
     operation: string,
     options: RequestOptions = {},
@@ -528,7 +533,7 @@ export class CookidooHttpClient implements ICookidooClient {
   }
 
   private async dispatch(
-    method: 'get' | 'post' | 'delete',
+    method: 'get' | 'post' | 'put' | 'delete',
     url: string,
     options: RequestOptions,
   ) {
@@ -743,6 +748,53 @@ export class CookidooHttpClient implements ICookidooClient {
       this.buildUrl(INGREDIENT_ITEMS_PATH),
       'clear shopping list',
       { parseResponse: false },
+    );
+  }
+
+  async getRecipesInCalendarWeek(day: string): Promise<CookidooCalendarDay[]> {
+    const result = await this.request<unknown>(
+      'get',
+      this.buildUrl(RECIPES_IN_CALENDAR_WEEK_PATH, { day }),
+      'loading calendar week',
+    );
+    const data = this.ensureObject(result, 'loading calendar week');
+    const days = this.ensureArray(data.myDays ?? [], 'loading calendar week');
+    return days.map((entry) => calendarDayFromJson(entry, this.localization));
+  }
+
+  async addRecipesToCalendar(
+    day: string,
+    recipeIds: string[],
+  ): Promise<CookidooCalendarDay> {
+    const result = await this.request<unknown>(
+      'put',
+      this.buildUrl(ADD_RECIPES_TO_CALENDAR_PATH),
+      'add recipes to calendar',
+      { data: { recipeIds, dayKey: day } },
+    );
+    const data = this.ensureObject(result, 'add recipes to calendar');
+    return calendarDayFromJson(
+      this.ensureObject(data.content, 'add recipes to calendar'),
+      this.localization,
+    );
+  }
+
+  async removeRecipeFromCalendar(
+    day: string,
+    recipeId: string,
+  ): Promise<CookidooCalendarDay> {
+    const result = await this.request<unknown>(
+      'delete',
+      this.buildUrl(REMOVE_RECIPE_FROM_CALENDAR_PATH, {
+        day,
+        recipe: recipeId,
+      }),
+      'remove recipe from calendar',
+    );
+    const data = this.ensureObject(result, 'remove recipe from calendar');
+    return calendarDayFromJson(
+      this.ensureObject(data.content, 'remove recipe from calendar'),
+      this.localization,
     );
   }
 
