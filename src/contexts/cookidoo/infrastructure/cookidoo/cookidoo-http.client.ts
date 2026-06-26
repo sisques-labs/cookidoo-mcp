@@ -307,9 +307,25 @@ export class CookidooHttpClient implements ICookidooClient {
 
     const requestId = this.extractRequestId(loginHtml);
 
-    let postStatus: number;
+    if (this.debug) {
+      const fields = [
+        ...new Set(
+          [...loginHtml.matchAll(/<input[^>]*name=["']([^"']+)["']/gi)].map(
+            (match) => match[1],
+          ),
+        ),
+      ];
+      const formAction = /<form[^>]*action=["']([^"']+)["']/i.exec(
+        loginHtml,
+      )?.[1];
+      this.logger.debug(
+        `Login form action=${formAction ?? '-'} fields=[${fields.join(', ')}]`,
+      );
+    }
+
+    let postResponse: AxiosResponse;
     try {
-      const resp = await this.sendFollowingRedirects(
+      postResponse = await this.sendFollowingRedirects(
         'post',
         CIAM_LOGIN_SRV_URL,
         {
@@ -322,12 +338,11 @@ export class CookidooHttpClient implements ICookidooClient {
           headers: { Accept: BROWSER_ACCEPT },
         },
       );
-      postStatus = resp.status;
     } catch (error) {
       throw this.wrapNetworkError(error, 'submit credentials');
     }
 
-    await this.verifyAuthCookies(postStatus);
+    await this.verifyAuthCookies(postResponse);
     this.loggedIn = true;
     this.logger.log('Cookidoo login successful');
   }
@@ -348,7 +363,7 @@ export class CookidooHttpClient implements ICookidooClient {
     return match[1];
   }
 
-  private async verifyAuthCookies(postStatus: number): Promise<void> {
+  private async verifyAuthCookies(postResponse: AxiosResponse): Promise<void> {
     // Like the upstream library, check every cookie in the jar regardless of
     // domain (not just the ones scoped to the API host).
     const serialized = await this.jar.serialize();
@@ -368,18 +383,29 @@ export class CookidooHttpClient implements ICookidooClient {
         ? collected.map((cookie) => `${cookie.key}@${cookie.domain}`).join(', ')
         : '(none)';
 
-    if (this.debug) {
-      this.logger.warn(
-        `Login verification failed. POST status ${postStatus}. Cookies in jar: ${summary}`,
-      );
-    }
+    const postStatus = postResponse.status;
+    const contentType = String(postResponse.headers['content-type'] ?? '');
+    const cfMitigated = postResponse.headers['cf-mitigated'];
+    const bodySnippet =
+      typeof postResponse.data === 'string'
+        ? postResponse.data.replace(/\s+/g, ' ').slice(0, 600)
+        : JSON.stringify(postResponse.data).slice(0, 600);
+
+    // The credentials POST diagnostics are the key signal: an error message
+    // points at the credentials, a `<form>`/redirect URL at an extra OAuth hop
+    // we must follow, and a Cloudflare challenge at bot protection.
+    this.logger.warn(
+      `Login verification failed. POST status=${postStatus} ` +
+        `content-type=${contentType} cf-mitigated=${cfMitigated ?? '-'} ` +
+        `cookies=[${summary}]`,
+    );
+    this.logger.warn(`Credentials POST body (first 600 chars): ${bodySnippet}`);
 
     throw new CookidooAuthException(
       `Login failed: missing session cookies [${missing.join(', ')}] ` +
-        `(credentials POST returned ${postStatus}). ` +
-        `Cookies collected during the flow: ${summary}. ` +
-        'If this list is empty the credentials were likely rejected — check ' +
-        'COOKIDOO_EMAIL / COOKIDOO_PASSWORD; otherwise the OAuth flow changed.',
+        `(credentials POST returned ${postStatus}, content-type ${contentType || 'n/a'}). ` +
+        `Cookies collected: ${summary}. ` +
+        `POST body starts with: ${bodySnippet.slice(0, 200)}`,
     );
   }
 
