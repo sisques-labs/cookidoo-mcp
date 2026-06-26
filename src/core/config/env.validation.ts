@@ -30,6 +30,8 @@ const baseEnvSchema = z.object({
   COOKIDOO_COUNTRY_CODE: z.string().trim().min(1).optional(),
   COOKIDOO_LANGUAGE: z.string().trim().min(1).optional(),
   COOKIDOO_URL: z.string().trim().url().optional(),
+
+  COOKIDOO_COOKIE_FILE: z.string().trim().min(1).optional(),
 });
 
 export function validateEnv(

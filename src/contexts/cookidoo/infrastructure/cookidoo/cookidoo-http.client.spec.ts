@@ -1,3 +1,6 @@
+import { promises as fs } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
 
 import { CookidooConfig } from '@core/config/cookidoo.config';
@@ -19,13 +22,13 @@ const config: CookidooConfig = {
   },
 };
 
-function makeClient(): {
+function makeClient(overrides: Partial<CookidooConfig> = {}): {
   client: CookidooHttpClient;
   requests: { method: string; url: string; headers: Record<string, any> }[];
   setHttp: (fn: jest.Mock) => void;
 } {
   const configService = {
-    getOrThrow: () => config,
+    getOrThrow: () => ({ ...config, ...overrides }),
   } as unknown as ConfigService;
 
   const client = new CookidooHttpClient(configService);
@@ -179,5 +182,54 @@ describe('CookidooHttpClient (auth flow)', () => {
     await expect(client.getUserInfo()).rejects.toBeInstanceOf(
       CookidooAuthException,
     );
+  });
+});
+
+describe('CookidooHttpClient (session persistence)', () => {
+  let cookieFile: string;
+
+  beforeEach(() => {
+    cookieFile = join(
+      tmpdir(),
+      `cookidoo-session-${Date.now()}-${Math.random().toString(36).slice(2)}.json`,
+    );
+  });
+
+  afterEach(async () => {
+    await fs.rm(cookieFile, { force: true });
+  });
+
+  it('persists the session after login and restores it without logging in again', async () => {
+    // First client logs in and writes the cookie file.
+    const first = makeClient({ cookieFile });
+    first.setHttp(jest.fn(loginChain));
+    await first.client.getUserInfo();
+
+    await expect(fs.readFile(cookieFile, 'utf-8')).resolves.toContain(
+      '_oauth2_proxy',
+    );
+
+    // Second client restores from the file: the API call must succeed without
+    // ever hitting the login page.
+    const second = makeClient({ cookieFile });
+    second.setHttp(
+      jest.fn((cfg: any) => {
+        if (cfg.method === 'get' && cfg.url.endsWith('/community/profile')) {
+          return {
+            status: 200,
+            headers: {},
+            data: { id: 'u1', userInfo: { username: 'chef', picture: null } },
+          };
+        }
+        throw new Error(`Unexpected request: ${cfg.method} ${cfg.url}`);
+      }),
+    );
+
+    const result = await second.client.getUserInfo();
+
+    expect(result.username).toBe('chef');
+    expect(
+      second.requests.some((r) => r.url.includes('/profile/es-ES/login')),
+    ).toBe(false);
   });
 });

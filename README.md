@@ -49,7 +49,17 @@ Credentials and localization come from environment variables (see
 | `COOKIDOO_COUNTRY_CODE` | no | `es` | Localization country code |
 | `COOKIDOO_LANGUAGE` | no | `es-ES` | Localization language |
 | `COOKIDOO_URL` | no | `https://cookidoo.es/foundation/es-ES` | Localization base URL |
+| `COOKIDOO_COOKIE_FILE` | no | — | Path to persist the session across restarts (see below) |
 | `PORT` | no | `3000` | HTTP port |
+
+### Session persistence
+
+By default the session lives only in memory: a fresh start logs in again. Set
+`COOKIDOO_COOKIE_FILE` to a writable path and the client restores the session
+from it on startup and rewrites it after every successful login, so restarts
+reuse the existing session (an expired one self-heals on the next `401`). The
+file holds session cookies — treat it like a credential and keep it out of
+version control.
 
 ## Running
 
@@ -125,6 +135,30 @@ Authentication is handled by the NestJS process via `COOKIDOO_EMAIL` /
 | `cookidoo_add_additional_items` | command | Add free-text items to the list |
 | `cookidoo_remove_additional_items` | command | Remove free-text items from the list |
 | `cookidoo_clear_shopping_list` | command | Empty the shopping list |
+| `cookidoo_mark_ingredient_items` | command | Mark ingredient items as bought/owned |
+| `cookidoo_mark_additional_items` | command | Mark free-text items as bought/owned |
+| `cookidoo_edit_additional_items` | command | Rename free-text items |
+| `cookidoo_add_custom_recipe_ingredients` | command | Add custom recipes' ingredients to the list |
+| `cookidoo_remove_custom_recipe_ingredients` | command | Remove custom recipes' ingredients from the list |
+| `cookidoo_get_calendar_week` | query | Recipes planned on the meal-planner calendar for a week |
+| `cookidoo_add_recipes_to_calendar` | command | Add recipes to the meal-planner calendar on a day |
+| `cookidoo_remove_recipe_from_calendar` | command | Remove a recipe from the meal-planner calendar on a day |
+| `cookidoo_add_custom_recipes_to_calendar` | command | Add custom recipes to the calendar on a day |
+| `cookidoo_remove_custom_recipe_from_calendar` | command | Remove a custom recipe from the calendar on a day |
+| `cookidoo_list_custom_recipes` | query | All user-created (custom) recipes |
+| `cookidoo_get_custom_recipe` | query | Full details of a custom recipe by id |
+| `cookidoo_add_custom_recipe` | command | Create a custom recipe from an existing recipe |
+| `cookidoo_remove_custom_recipe` | command | Delete a custom recipe |
+| `cookidoo_count_managed_collections` | query | Total managed collections / pages |
+| `cookidoo_get_managed_collections` | query | A page of managed collections |
+| `cookidoo_add_managed_collection` | command | Subscribe to a managed collection |
+| `cookidoo_remove_managed_collection` | command | Unsubscribe from a managed collection |
+| `cookidoo_count_custom_collections` | query | Total custom collections / pages |
+| `cookidoo_get_custom_collections` | query | A page of custom collections |
+| `cookidoo_add_custom_collection` | command | Create a custom collection |
+| `cookidoo_remove_custom_collection` | command | Delete a custom collection |
+| `cookidoo_add_recipes_to_custom_collection` | command | Add recipes to a custom collection |
+| `cookidoo_remove_recipe_from_custom_collection` | command | Remove a recipe from a custom collection |
 
 ### Adding a tool
 
@@ -135,11 +169,12 @@ Authentication is handled by the NestJS process via `COOKIDOO_EMAIL` /
 3. Add the tool under `transport/mcp/tools/`, tagged with `@McpTool()`, and
    register it in the `MCP_TOOLS` array of `cookidoo.module.ts`.
 
-## Not yet migrated
+## Migration status
 
-The upstream library also covers custom recipes, collections (managed/custom)
-and the meal-planning calendar. These are intentionally left out of this first
-"core" migration and can be added following the steps above.
+The migration now covers the full upstream `cookidoo-api` surface: account,
+recipe search & details, shopping list (incl. ownership/edit), the meal-planning
+calendar, custom recipes, collections (managed/custom) and session persistence
+(`save_cookies` / `load_cookies`, here as the optional `COOKIDOO_COOKIE_FILE`).
 
 ## License
 

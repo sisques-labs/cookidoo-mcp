@@ -1,7 +1,11 @@
 import { CookidooLocalization } from '@core/config/cookidoo.config';
 import {
   additionalItemFromJson,
+  calendarDayFromJson,
+  collectionFromJson,
   constructRecipeUrl,
+  customRecipeFromJson,
+  durationToSeconds,
   ingredientItemFromJson,
   recipeDetailsFromJson,
   searchResultFromJson,
@@ -207,6 +211,167 @@ describe('cookidoo mappers', () => {
       );
 
       expect(result.total).toBe(1);
+    });
+  });
+
+  describe('calendarDayFromJson', () => {
+    it('merges regular and custom recipes and maps their fields', () => {
+      const result = calendarDayFromJson(
+        {
+          id: '2026-06-26',
+          title: 'Friday',
+          recipes: [
+            {
+              id: 'r1',
+              title: 'Soup',
+              totalTime: 1800,
+              assets: { images: { square: 'http://img/{transformation}.jpg' } },
+            },
+          ],
+          customerRecipes: [{ id: 'c1', title: 'My dish', totalTime: null }],
+          customerRecipeIds: ['c1'],
+        },
+        localization,
+      );
+
+      expect(result.id).toBe('2026-06-26');
+      expect(result.title).toBe('Friday');
+      expect(result.recipes).toHaveLength(2);
+      expect(result.recipes[0]).toMatchObject({
+        id: 'r1',
+        name: 'Soup',
+        totalTime: 1800,
+        url: 'https://cookidoo.ch/recipes/recipe/de-CH/r1',
+      });
+      expect(result.recipes[0].thumbnail).toContain(
+        't_web_shared_recipe_221x240',
+      );
+      expect(result.recipes[1]).toMatchObject({
+        id: 'c1',
+        name: 'My dish',
+        totalTime: null,
+        thumbnail: null,
+        image: null,
+      });
+      expect(result.customerRecipeIds).toEqual(['c1']);
+    });
+
+    it('defaults missing recipe collections to empty arrays', () => {
+      const result = calendarDayFromJson(
+        { id: '2026-06-27', title: 'Saturday', recipes: [] },
+        localization,
+      );
+
+      expect(result.recipes).toEqual([]);
+      expect(result.customerRecipeIds).toEqual([]);
+    });
+  });
+
+  describe('durationToSeconds', () => {
+    it('parses ISO-8601 durations', () => {
+      expect(durationToSeconds('PT1H30M')).toBe(5400);
+      expect(durationToSeconds('PT45M')).toBe(2700);
+      expect(durationToSeconds('PT30S')).toBe(30);
+      expect(durationToSeconds('P1DT2H')).toBe(93600);
+    });
+
+    it('passes through numbers and numeric strings', () => {
+      expect(durationToSeconds(600)).toBe(600);
+      expect(durationToSeconds('600')).toBe(600);
+    });
+
+    it('defaults to 0 for null/undefined/garbage', () => {
+      expect(durationToSeconds(null)).toBe(0);
+      expect(durationToSeconds(undefined)).toBe(0);
+      expect(durationToSeconds('not a duration')).toBe(0);
+    });
+  });
+
+  describe('customRecipeFromJson', () => {
+    it('maps content, durations, text lists and image', () => {
+      const result = customRecipeFromJson(
+        {
+          recipeId: 'cr1',
+          recipeContent: {
+            name: 'My cake',
+            totalTime: 'PT1H',
+            prepTime: 'PT20M',
+            image: 'http://img/{transformation}.jpg',
+            recipeYield: { value: 6, unitText: 'portions' },
+            recipeIngredient: ['200 g flour', { text: '3 eggs' }],
+            recipeInstructions: [{ text: 'Mix' }, 'Bake'],
+            tool: ['Thermomix'],
+          },
+        },
+        localization,
+      );
+
+      expect(result.id).toBe('cr1');
+      expect(result.name).toBe('My cake');
+      expect(result.totalTime).toBe(3600);
+      expect(result.activeTime).toBe(1200);
+      expect(result.servingSize).toBe(6);
+      expect(result.ingredients).toEqual(['200 g flour', '3 eggs']);
+      expect(result.instructions).toEqual(['Mix', 'Bake']);
+      expect(result.tools).toEqual(['Thermomix']);
+      expect(result.thumbnail).toContain('t_web_shared_recipe_221x240');
+      expect(result.url).toBe('https://cookidoo.ch/created-recipes/de-CH/cr1');
+    });
+
+    it('falls back to yield/ingredients aliases and null image', () => {
+      const result = customRecipeFromJson(
+        {
+          recipeId: 'cr2',
+          recipeContent: {
+            name: 'Plain',
+            yield: { value: 2 },
+            ingredients: ['water'],
+            instructions: ['boil'],
+          },
+        },
+        localization,
+      );
+
+      expect(result.servingSize).toBe(2);
+      expect(result.ingredients).toEqual(['water']);
+      expect(result.totalTime).toBe(0);
+      expect(result.thumbnail).toBeNull();
+      expect(result.image).toBeNull();
+    });
+  });
+
+  describe('collectionFromJson', () => {
+    it('maps id/title/description and nested chapters', () => {
+      const result = collectionFromJson({
+        id: 'col1',
+        title: 'Weeknight dinners',
+        description: 'Quick meals',
+        chapters: [
+          {
+            title: 'Pasta',
+            recipes: [{ id: 'r1', title: 'Carbonara', totalTime: '1500' }],
+          },
+        ],
+      });
+
+      expect(result).toEqual({
+        id: 'col1',
+        name: 'Weeknight dinners',
+        description: 'Quick meals',
+        chapters: [
+          {
+            name: 'Pasta',
+            recipes: [{ id: 'r1', name: 'Carbonara', totalTime: 1500 }],
+          },
+        ],
+      });
+    });
+
+    it('defaults missing description and chapters', () => {
+      const result = collectionFromJson({ id: 'col2', title: 'Empty' });
+
+      expect(result.description).toBeNull();
+      expect(result.chapters).toEqual([]);
     });
   });
 });
