@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.2.1-beta.0] - 2026-06-26
+
+### Documentation
+- Add minimalist bilingual project website for GitHub Pages (f413a69)
 ## [0.2.0] - 2026-06-26
 
 ### Chore
