@@ -1,0 +1,37 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+## [0.1.0-alpha.2] - 2026-06-26
+
+### Chore
+- **cursor:** Add MCP client config for Cookidoo server (9ff7e72)
+
+### Documentation
+- **readme:** Document Docker run with env file or inline vars (65f83e7)
+## [0.1.0-alpha.1] - 2026-06-26
+
+### Chore
+- Add codegraph (4496910)
+## [0.1.0-alpha.0] - 2026-06-26
+
+### Bug Fixes
+- **cookidoo:** Don't send JSON Accept header on the login flow (fe39452)
+- **cookidoo:** Follow OAuth redirects manually to persist session cookies (b2dea69)
+- **cookidoo:** Diagnose login cookie failure; match upstream verify (365d684)
+- **cookidoo:** Send browser navigation headers on the credentials POST (518e8a4)
+- **cookidoo:** Detect cidaas invalid-credentials redirect (32530c1)
+
+### Chore
+- Initialize README with project title (dd81f1e)
+- Add tests, health module and CI/CD infra (a1bfd52)
+- Default localization to Spanish (es-ES) (fce24e6)
+- **cookidoo:** Add standalone login diagnostic script (42e7cd9)
+- **cookidoo:** Log credentials POST body + login form fields (81e18cc)
+- **cookidoo:** Surface login form action + fields in auth error (af0fd58)
+
+### Features
+- NestJS MCP server for Cookidoo (core migration) (160ecdc)
+
+### Refactor
+- **cookidoo:** Quiet login failure diagnostics (ffa00b1)
+
