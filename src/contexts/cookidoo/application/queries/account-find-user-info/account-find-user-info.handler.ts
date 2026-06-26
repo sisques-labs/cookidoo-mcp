@@ -9,9 +9,7 @@ import { CookidooUserInfo } from '@contexts/cookidoo/domain/types/cookidoo-accou
 import { AccountFindUserInfoQuery } from './account-find-user-info.query';
 
 @QueryHandler(AccountFindUserInfoQuery)
-export class AccountFindUserInfoQueryHandler
-  implements IQueryHandler<AccountFindUserInfoQuery>
-{
+export class AccountFindUserInfoQueryHandler implements IQueryHandler<AccountFindUserInfoQuery> {
   constructor(
     @Inject(COOKIDOO_CLIENT) private readonly client: ICookidooClient,
   ) {}

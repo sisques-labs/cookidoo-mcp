@@ -8,9 +8,7 @@ import {
 import { ShoppingListRemoveRecipeIngredientsCommand } from './shopping-list-remove-recipe-ingredients.command';
 
 @CommandHandler(ShoppingListRemoveRecipeIngredientsCommand)
-export class ShoppingListRemoveRecipeIngredientsCommandHandler
-  implements ICommandHandler<ShoppingListRemoveRecipeIngredientsCommand>
-{
+export class ShoppingListRemoveRecipeIngredientsCommandHandler implements ICommandHandler<ShoppingListRemoveRecipeIngredientsCommand> {
   constructor(
     @Inject(COOKIDOO_CLIENT) private readonly client: ICookidooClient,
   ) {}

@@ -9,9 +9,7 @@ import { CookidooAdditionalItem } from '@contexts/cookidoo/domain/types/cookidoo
 import { ShoppingListFindAdditionalItemsQuery } from './shopping-list-find-additional-items.query';
 
 @QueryHandler(ShoppingListFindAdditionalItemsQuery)
-export class ShoppingListFindAdditionalItemsQueryHandler
-  implements IQueryHandler<ShoppingListFindAdditionalItemsQuery>
-{
+export class ShoppingListFindAdditionalItemsQueryHandler implements IQueryHandler<ShoppingListFindAdditionalItemsQuery> {
   constructor(
     @Inject(COOKIDOO_CLIENT) private readonly client: ICookidooClient,
   ) {}

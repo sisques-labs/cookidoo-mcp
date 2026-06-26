@@ -9,9 +9,7 @@ import { CookidooAdditionalItem } from '@contexts/cookidoo/domain/types/cookidoo
 import { ShoppingListAddAdditionalItemsCommand } from './shopping-list-add-additional-items.command';
 
 @CommandHandler(ShoppingListAddAdditionalItemsCommand)
-export class ShoppingListAddAdditionalItemsCommandHandler
-  implements ICommandHandler<ShoppingListAddAdditionalItemsCommand>
-{
+export class ShoppingListAddAdditionalItemsCommandHandler implements ICommandHandler<ShoppingListAddAdditionalItemsCommand> {
   constructor(
     @Inject(COOKIDOO_CLIENT) private readonly client: ICookidooClient,
   ) {}

@@ -24,6 +24,8 @@ export class SubscriptionGetActiveMcpTool implements IMcpTool {
     const result = await this.queryBus.execute(
       new SubscriptionFindActiveQuery(),
     );
-    return { content: [{ type: 'text', text: JSON.stringify(result ?? null) }] };
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result ?? null) }],
+    };
   }
 }

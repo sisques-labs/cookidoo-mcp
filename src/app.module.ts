@@ -4,6 +4,7 @@ import { CqrsModule } from '@nestjs/cqrs';
 
 import { cookidooConfig } from '@core/config/cookidoo.config';
 import { validateEnv } from '@core/config/env.validation';
+import { HealthModule } from '@core/health/health.module';
 import { McpModule } from '@core/mcp/mcp.module';
 import { CookidooModule } from '@contexts/cookidoo/cookidoo.module';
 
@@ -16,6 +17,7 @@ import { CookidooModule } from '@contexts/cookidoo/cookidoo.module';
       load: [cookidooConfig],
       cache: true,
     }),
+    HealthModule,
     McpModule,
     CookidooModule,
   ],

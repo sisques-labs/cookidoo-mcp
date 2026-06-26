@@ -23,7 +23,9 @@ export class RecipeGetDetailsMcpTool implements IMcpTool {
   async execute(args: Record<string, unknown>): Promise<CallToolResult> {
     const { id } = args as { id: string };
     this.logger.log(`Loading recipe details: ${id}`);
-    const result = await this.queryBus.execute(new RecipeFindDetailsQuery({ id }));
+    const result = await this.queryBus.execute(
+      new RecipeFindDetailsQuery({ id }),
+    );
     return { content: [{ type: 'text', text: JSON.stringify(result) }] };
   }
 }

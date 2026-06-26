@@ -9,9 +9,7 @@ import { CookidooSubscription } from '@contexts/cookidoo/domain/types/cookidoo-a
 import { SubscriptionFindActiveQuery } from './subscription-find-active.query';
 
 @QueryHandler(SubscriptionFindActiveQuery)
-export class SubscriptionFindActiveQueryHandler
-  implements IQueryHandler<SubscriptionFindActiveQuery>
-{
+export class SubscriptionFindActiveQueryHandler implements IQueryHandler<SubscriptionFindActiveQuery> {
   constructor(
     @Inject(COOKIDOO_CLIENT) private readonly client: ICookidooClient,
   ) {}

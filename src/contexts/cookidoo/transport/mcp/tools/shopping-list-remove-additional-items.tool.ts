@@ -28,6 +28,8 @@ export class ShoppingListRemoveAdditionalItemsMcpTool implements IMcpTool {
     await this.commandBus.execute(
       new ShoppingListRemoveAdditionalItemsCommand({ ids }),
     );
-    return { content: [{ type: 'text', text: JSON.stringify({ removed: ids }) }] };
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ removed: ids }) }],
+    };
   }
 }

@@ -8,9 +8,7 @@ import {
 import { ShoppingListClearCommand } from './shopping-list-clear.command';
 
 @CommandHandler(ShoppingListClearCommand)
-export class ShoppingListClearCommandHandler
-  implements ICommandHandler<ShoppingListClearCommand>
-{
+export class ShoppingListClearCommandHandler implements ICommandHandler<ShoppingListClearCommand> {
   constructor(
     @Inject(COOKIDOO_CLIENT) private readonly client: ICookidooClient,
   ) {}

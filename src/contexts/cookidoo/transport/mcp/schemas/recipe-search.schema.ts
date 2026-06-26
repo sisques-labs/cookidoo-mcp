@@ -15,10 +15,7 @@ export const recipeSearchSchema = {
     .array(z.string())
     .optional()
     .describe('Exclude recipes containing any of these ingredients'),
-  categories: z
-    .array(z.string())
-    .optional()
-    .describe('Filter by category ids'),
+  categories: z.array(z.string()).optional().describe('Filter by category ids'),
   tags: z.array(z.string()).optional().describe('Filter by tags'),
   difficulty: z
     .enum(['easy', 'medium', 'hard'])

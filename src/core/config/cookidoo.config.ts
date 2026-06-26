@@ -39,7 +39,8 @@ export const cookidooConfig = registerAs(
     email: requireEnv('COOKIDOO_EMAIL'),
     password: requireEnv('COOKIDOO_PASSWORD'),
     localization: {
-      countryCode: process.env.COOKIDOO_COUNTRY_CODE?.trim() ?? DEFAULT_COUNTRY_CODE,
+      countryCode:
+        process.env.COOKIDOO_COUNTRY_CODE?.trim() ?? DEFAULT_COUNTRY_CODE,
       language: process.env.COOKIDOO_LANGUAGE?.trim() ?? DEFAULT_LANGUAGE,
       url: process.env.COOKIDOO_URL?.trim() ?? DEFAULT_URL,
     },

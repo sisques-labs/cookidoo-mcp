@@ -22,6 +22,8 @@ export class ShoppingListClearMcpTool implements IMcpTool {
   async execute(): Promise<CallToolResult> {
     this.logger.log('Clearing shopping list');
     await this.commandBus.execute(new ShoppingListClearCommand());
-    return { content: [{ type: 'text', text: JSON.stringify({ cleared: true }) }] };
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ cleared: true }) }],
+    };
   }
 }

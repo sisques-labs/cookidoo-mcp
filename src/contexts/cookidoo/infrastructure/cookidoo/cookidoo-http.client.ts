@@ -4,7 +4,10 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { CookieJar } from 'tough-cookie';
 
-import { CookidooConfig, CookidooLocalization } from '@core/config/cookidoo.config';
+import {
+  CookidooConfig,
+  CookidooLocalization,
+} from '@core/config/cookidoo.config';
 import {
   CookidooSubscription,
   CookidooUserInfo,
@@ -115,14 +118,14 @@ export class CookidooHttpClient implements ICookidooClient {
     return `${url.protocol}//${url.host}`;
   }
 
-  private buildUrl(path: string, replacements: Record<string, string> = {}): string {
+  private buildUrl(
+    path: string,
+    replacements: Record<string, string> = {},
+  ): string {
     const resolved = Object.entries({
       language: this.localization.language,
       ...replacements,
-    }).reduce(
-      (acc, [key, value]) => acc.replaceAll(`{${key}}`, value),
-      path,
-    );
+    }).reduce((acc, [key, value]) => acc.replaceAll(`{${key}}`, value), path);
     return `${this.apiEndpoint}/${resolved}`;
   }
 
@@ -187,7 +190,9 @@ export class CookidooHttpClient implements ICookidooClient {
 
   private extractRequestId(html: string): string {
     const match =
-      /<input[^>]*name=["']requestId["'][^>]*value=["']([^"']+)["']/.exec(html) ??
+      /<input[^>]*name=["']requestId["'][^>]*value=["']([^"']+)["']/.exec(
+        html,
+      ) ??
       /<input[^>]*value=["']([0-9a-f-]{36})["'][^>]*name=["']requestId["']/.exec(
         html,
       );
@@ -228,7 +233,9 @@ export class CookidooHttpClient implements ICookidooClient {
 
     // The session may have expired — re-login once and retry.
     if (response.status === 401) {
-      this.logger.warn(`Session expired during "${operation}", re-authenticating`);
+      this.logger.warn(
+        `Session expired during "${operation}", re-authenticating`,
+      );
       this.loggedIn = false;
       await this.ensureLoggedIn();
       response = await this.dispatch(method, url, options);
@@ -326,7 +333,10 @@ export class CookidooHttpClient implements ICookidooClient {
       this.buildUrl(SUBSCRIPTIONS_PATH),
       'loading active subscription',
     );
-    const subscriptions = this.ensureArray(result, 'loading active subscription');
+    const subscriptions = this.ensureArray(
+      result,
+      'loading active subscription',
+    );
     const active = subscriptions.find((sub) => sub && sub.active);
     return active ? subscriptionFromJson(active) : null;
   }
@@ -346,19 +356,21 @@ export class CookidooHttpClient implements ICookidooClient {
   async searchRecipes(
     params: CookidooSearchParams,
   ): Promise<CookidooSearchResult> {
-    const locale =
-      params.locale ?? this.localization.language.split('-')[0];
+    const locale = params.locale ?? this.localization.language.split('-')[0];
     const query: Record<string, string> = {};
     if (params.query) query.query = params.query;
-    if (params.ingredients?.length) query.ingredients = params.ingredients.join(',');
+    if (params.ingredients?.length)
+      query.ingredients = params.ingredients.join(',');
     if (params.excludeIngredients?.length)
       query.excludeIngredients = params.excludeIngredients.join(',');
-    if (params.categories?.length) query.categories = params.categories.join(',');
+    if (params.categories?.length)
+      query.categories = params.categories.join(',');
     if (params.tags?.length) query.tags = params.tags.join(',');
     if (params.difficulty) query.difficulty = params.difficulty;
     if (params.preparationTime !== undefined)
       query.preparationTime = String(params.preparationTime);
-    if (params.totalTime !== undefined) query.totalTime = String(params.totalTime);
+    if (params.totalTime !== undefined)
+      query.totalTime = String(params.totalTime);
     if (params.portions !== undefined) query.portions = String(params.portions);
     if (params.page !== undefined) query.page = String(params.page);
     if (params.pageSize !== undefined) query.pageSize = String(params.pageSize);

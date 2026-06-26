@@ -167,7 +167,9 @@ export function recipeDetailsFromJson(
   );
   const notes = (recipe.additionalInformation ?? [])
     .map((info: Json) => info.content)
-    .filter((content: unknown): content is string => typeof content === 'string');
+    .filter(
+      (content: unknown): content is string => typeof content === 'string',
+    );
   const utensils = (recipe.recipeUtensils ?? [])
     .map((utensil: Json) => utensil.utensilNotation)
     .filter((value: unknown): value is string => typeof value === 'string');

@@ -9,9 +9,7 @@ import { CookidooRecipeDetails } from '@contexts/cookidoo/domain/types/cookidoo-
 import { RecipeFindDetailsQuery } from './recipe-find-details.query';
 
 @QueryHandler(RecipeFindDetailsQuery)
-export class RecipeFindDetailsQueryHandler
-  implements IQueryHandler<RecipeFindDetailsQuery>
-{
+export class RecipeFindDetailsQueryHandler implements IQueryHandler<RecipeFindDetailsQuery> {
   constructor(
     @Inject(COOKIDOO_CLIENT) private readonly client: ICookidooClient,
   ) {}

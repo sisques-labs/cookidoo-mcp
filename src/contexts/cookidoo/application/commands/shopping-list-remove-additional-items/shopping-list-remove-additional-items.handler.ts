@@ -8,9 +8,7 @@ import {
 import { ShoppingListRemoveAdditionalItemsCommand } from './shopping-list-remove-additional-items.command';
 
 @CommandHandler(ShoppingListRemoveAdditionalItemsCommand)
-export class ShoppingListRemoveAdditionalItemsCommandHandler
-  implements ICommandHandler<ShoppingListRemoveAdditionalItemsCommand>
-{
+export class ShoppingListRemoveAdditionalItemsCommandHandler implements ICommandHandler<ShoppingListRemoveAdditionalItemsCommand> {
   constructor(
     @Inject(COOKIDOO_CLIENT) private readonly client: ICookidooClient,
   ) {}
