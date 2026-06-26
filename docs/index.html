@@ -504,7 +504,8 @@ docker run --rm -p 3000:3000 --env-file .env cookidoo-mcp</pre></div>
           <div class="step reveal"><div class="n">4</div><div class="body">
             <h4><span data-lang-en>Point your MCP client at it</span><span data-lang-es>Apunta tu cliente MCP</span></h4>
             <div class="code"><div class="code-head"><div class="dots"><i></i><i></i><i></i></div><span class="file">endpoint</span></div>
-<pre><span class="c-key">POST</span> http://localhost:3000<span class="c-str">/api/mcp</span>   <span class="c-com"># Streamable HTTP (stateless)</span></pre></div>
+<pre><span class="c-key">POST</span> http://localhost:3000<span class="c-str">/api/mcp</span>    <span class="c-com"># Streamable HTTP (stateless)</span>
+<span class="c-key">GET</span>  http://localhost:3000<span class="c-str">/api/health</span> <span class="c-com"># liveness probe</span></pre></div>
           </div></div>
         </div>
       </div>
@@ -533,6 +534,7 @@ docker run --rm -p 3000:3000 --env-file .env cookidoo-mcp</pre></div>
               <tr><td><code>COOKIDOO_LANGUAGE</code></td><td class="req-no"><span data-lang-en>no</span><span data-lang-es>no</span></td><td><code>es-ES</code></td><td><span data-lang-en>Localization language</span><span data-lang-es>Idioma de localización</span></td></tr>
               <tr><td><code>COOKIDOO_URL</code></td><td class="req-no"><span data-lang-en>no</span><span data-lang-es>no</span></td><td><code>cookidoo.es/…</code></td><td><span data-lang-en>Localization base URL</span><span data-lang-es>URL base de localización</span></td></tr>
               <tr><td><code>COOKIDOO_COOKIE_FILE</code></td><td class="req-no"><span data-lang-en>no</span><span data-lang-es>no</span></td><td>—</td><td><span data-lang-en>Path to persist the session across restarts</span><span data-lang-es>Ruta para persistir la sesión entre reinicios</span></td></tr>
+              <tr><td><code>COOKIDOO_DEBUG</code></td><td class="req-no"><span data-lang-en>no</span><span data-lang-es>no</span></td><td><code>false</code></td><td><span data-lang-en>Log the full OAuth2 login flow to debug authentication</span><span data-lang-es>Registra todo el flujo de login OAuth2 para depurar la autenticación</span></td></tr>
               <tr><td><code>PORT</code></td><td class="req-no"><span data-lang-en>no</span><span data-lang-es>no</span></td><td><code>3000</code></td><td><span data-lang-en>HTTP port</span><span data-lang-es>Puerto HTTP</span></td></tr>
             </tbody>
           </table>
