@@ -26,6 +26,13 @@ export interface CookidooConfig {
   readonly email: string;
   readonly password: string;
   readonly localization: CookidooLocalization;
+  /**
+   * Optional path to a file used to persist the session cookies across
+   * restarts. When set, the client restores the session from it on startup and
+   * rewrites it after every successful login, avoiding a fresh log-in on each
+   * restart. When unset, the session lives only in memory.
+   */
+  readonly cookieFile?: string;
 }
 
 /**
@@ -44,5 +51,6 @@ export const cookidooConfig = registerAs(
       language: process.env.COOKIDOO_LANGUAGE?.trim() ?? DEFAULT_LANGUAGE,
       url: process.env.COOKIDOO_URL?.trim() ?? DEFAULT_URL,
     },
+    cookieFile: process.env.COOKIDOO_COOKIE_FILE?.trim() || undefined,
   }),
 );

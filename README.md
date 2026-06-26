@@ -49,7 +49,17 @@ Credentials and localization come from environment variables (see
 | `COOKIDOO_COUNTRY_CODE` | no | `es` | Localization country code |
 | `COOKIDOO_LANGUAGE` | no | `es-ES` | Localization language |
 | `COOKIDOO_URL` | no | `https://cookidoo.es/foundation/es-ES` | Localization base URL |
+| `COOKIDOO_COOKIE_FILE` | no | — | Path to persist the session across restarts (see below) |
 | `PORT` | no | `3000` | HTTP port |
+
+### Session persistence
+
+By default the session lives only in memory: a fresh start logs in again. Set
+`COOKIDOO_COOKIE_FILE` to a writable path and the client restores the session
+from it on startup and rewrites it after every successful login, so restarts
+reuse the existing session (an expired one self-heals on the next `401`). The
+file holds session cookies — treat it like a credential and keep it out of
+version control.
 
 ## Running
 
@@ -159,14 +169,12 @@ Authentication is handled by the NestJS process via `COOKIDOO_EMAIL` /
 3. Add the tool under `transport/mcp/tools/`, tagged with `@McpTool()`, and
    register it in the `MCP_TOOLS` array of `cookidoo.module.ts`.
 
-## Not yet migrated
+## Migration status
 
-The migration now covers the full upstream surface used here: account, recipe
-search & details, shopping list (incl. ownership/edit), the meal-planning
-calendar, custom recipes and collections (managed/custom). The only upstream
-feature intentionally left out is on-disk session persistence
-(`save_cookies` / `load_cookies`) — this server keeps its session in memory and
-re-authenticates automatically, so it isn't needed.
+The migration now covers the full upstream `cookidoo-api` surface: account,
+recipe search & details, shopping list (incl. ownership/edit), the meal-planning
+calendar, custom recipes, collections (managed/custom) and session persistence
+(`save_cookies` / `load_cookies`, here as the optional `COOKIDOO_COOKIE_FILE`).
 
 ## License
 

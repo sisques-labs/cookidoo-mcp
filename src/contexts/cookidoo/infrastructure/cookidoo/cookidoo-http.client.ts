@@ -1,3 +1,4 @@
+import { promises as fs } from 'fs';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
@@ -151,12 +152,13 @@ export class CookidooHttpClient implements ICookidooClient {
   private readonly logger = new Logger(CookidooHttpClient.name);
   private readonly config: CookidooConfig;
   private readonly localization: CookidooLocalization;
-  private readonly jar: CookieJar;
+  private jar: CookieJar;
   private readonly http: AxiosInstance;
   private readonly debug = process.env.COOKIDOO_DEBUG === 'true';
 
   private loggedIn = false;
   private loginInFlight: Promise<void> | null = null;
+  private sessionRestored = false;
 
   constructor(configService: ConfigService) {
     this.config = configService.getOrThrow<CookidooConfig>('cookidoo');
@@ -329,6 +331,10 @@ export class CookidooHttpClient implements ICookidooClient {
   // ---------------------------------------------------------------------------
 
   private async ensureLoggedIn(): Promise<void> {
+    if (!this.sessionRestored) {
+      this.sessionRestored = true;
+      await this.restoreSession();
+    }
     if (this.loggedIn) {
       return;
     }
@@ -409,6 +415,67 @@ export class CookidooHttpClient implements ICookidooClient {
     await this.verifyAuthCookies(postResponse, loginForm);
     this.loggedIn = true;
     this.logger.log('Cookidoo login successful');
+    await this.persistSession();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Session persistence (optional, via COOKIDOO_COOKIE_FILE)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Restore the cookie jar from {@link CookidooConfig.cookieFile} if configured
+   * and present. When the restored jar already holds the required auth cookies,
+   * the session is treated as logged in (an expired one self-heals on the first
+   * 401 via the re-login path). Missing/invalid files are ignored — the client
+   * just logs in fresh.
+   */
+  private async restoreSession(): Promise<void> {
+    const path = this.config.cookieFile;
+    if (!path) {
+      return;
+    }
+    let serialized: unknown;
+    try {
+      serialized = JSON.parse(await fs.readFile(path, 'utf-8'));
+    } catch {
+      // No usable cookie file yet — start with a fresh login.
+      return;
+    }
+    try {
+      this.jar = await CookieJar.deserialize(
+        serialized as Parameters<typeof CookieJar.deserialize>[0],
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Ignoring invalid cookie file "${path}": ${(error as Error).message}`,
+      );
+      return;
+    }
+    const { cookies } = await this.jar.serialize();
+    const names = new Set(cookies.map((cookie) => cookie.key));
+    if (REQUIRED_AUTH_COOKIES.every((name) => names.has(name))) {
+      this.loggedIn = true;
+      this.logger.log(`Restored Cookidoo session from "${path}"`);
+    }
+  }
+
+  /** Write the current cookie jar to {@link CookidooConfig.cookieFile}. */
+  private async persistSession(): Promise<void> {
+    const path = this.config.cookieFile;
+    if (!path) {
+      return;
+    }
+    try {
+      const serialized = await this.jar.serialize();
+      await fs.writeFile(path, JSON.stringify(serialized), 'utf-8');
+      if (this.debug) {
+        this.logger.debug(`Persisted Cookidoo session to "${path}"`);
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Could not persist session to "${path}": ${(error as Error).message}`,
+      );
+    }
   }
 
   private assertNoLoginError(postResponse: AxiosResponse): void {
