@@ -25,9 +25,16 @@ export const ADD_INGREDIENT_ITEMS_FOR_RECIPES_PATH =
 export const REMOVE_INGREDIENT_ITEMS_FOR_RECIPES_PATH =
   'shopping/{language}/recipes/remove';
 
+export const EDIT_OWNERSHIP_INGREDIENT_ITEMS_PATH =
+  'shopping/{language}/owned-ingredients/ownership/edit';
+
 export const ADDITIONAL_ITEMS_PATH = 'shopping/{language}';
 export const ADD_ADDITIONAL_ITEMS_PATH =
   'shopping/{language}/additional-items/add';
+export const EDIT_ADDITIONAL_ITEMS_PATH =
+  'shopping/{language}/additional-items/edit';
+export const EDIT_OWNERSHIP_ADDITIONAL_ITEMS_PATH =
+  'shopping/{language}/additional-items/ownership/edit';
 export const REMOVE_ADDITIONAL_ITEMS_PATH =
   'shopping/{language}/additional-items/remove';
 
@@ -39,6 +46,26 @@ export const RECIPES_IN_CALENDAR_WEEK_PATH =
 export const ADD_RECIPES_TO_CALENDAR_PATH = 'planning/{language}/api/my-day';
 export const REMOVE_RECIPE_FROM_CALENDAR_PATH =
   'planning/{language}/api/my-day/{day}/recipes/{recipe}';
+
+export const CUSTOM_RECIPES_PATH = 'created-recipes/{language}';
+export const CUSTOM_RECIPE_PATH = 'created-recipes/{language}/{id}';
+export const ADD_CUSTOM_RECIPE_PATH = 'created-recipes/{language}';
+export const REMOVE_CUSTOM_RECIPE_PATH = 'created-recipes/{language}/{id}';
+
+export const MANAGED_COLLECTIONS_PATH = 'organize/{language}/api/managed-list';
+export const ADD_MANAGED_COLLECTION_PATH =
+  'organize/{language}/api/managed-list';
+export const REMOVE_MANAGED_COLLECTION_PATH =
+  'organize/{language}/api/managed-list/{id}';
+
+export const CUSTOM_COLLECTIONS_PATH = 'organize/{language}/api/custom-list';
+export const ADD_CUSTOM_COLLECTION_PATH = 'organize/{language}/api/custom-list';
+export const REMOVE_CUSTOM_COLLECTION_PATH =
+  'organize/{language}/api/custom-list/{id}';
+export const ADD_RECIPES_TO_CUSTOM_COLLECTION_PATH =
+  'organize/{language}/api/custom-list/{id}';
+export const REMOVE_RECIPE_FROM_CUSTOM_COLLECTION_PATH =
+  'organize/{language}/api/custom-list/{id}/recipes/{recipe}';
 
 /** Authentication cookies the OAuth2 flow must set for a session to be valid. */
 export const REQUIRED_AUTH_COOKIES = ['_oauth2_proxy', 'v-authenticated'];

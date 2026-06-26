@@ -22,7 +22,16 @@ import {
   CookidooIngredientItem,
 } from '../../domain/types/cookidoo-shopping-list.type';
 import { CookidooCalendarDay } from '../../domain/types/cookidoo-calendar.type';
-import { ICookidooClient } from '../../domain/interfaces/cookidoo-client.interface';
+import { CookidooCustomRecipe } from '../../domain/types/cookidoo-custom-recipe.type';
+import {
+  CookidooCollection,
+  CookidooCollectionPage,
+} from '../../domain/types/cookidoo-collection.type';
+import {
+  CookidooAdditionalItemEdit,
+  CookidooOwnershipChange,
+  ICookidooClient,
+} from '../../domain/interfaces/cookidoo-client.interface';
 import {
   CookidooAuthException,
   CookidooParseException,
@@ -31,6 +40,8 @@ import {
 import {
   additionalItemFromJson,
   calendarDayFromJson,
+  collectionFromJson,
+  customRecipeFromJson,
   ingredientItemFromJson,
   recipeDetailsFromJson,
   searchResultFromJson,
@@ -40,20 +51,35 @@ import {
 } from './cookidoo.mappers';
 import {
   ADD_ADDITIONAL_ITEMS_PATH,
+  ADD_CUSTOM_COLLECTION_PATH,
+  ADD_CUSTOM_RECIPE_PATH,
   ADD_INGREDIENT_ITEMS_FOR_RECIPES_PATH,
+  ADD_MANAGED_COLLECTION_PATH,
   ADD_RECIPES_TO_CALENDAR_PATH,
+  ADD_RECIPES_TO_CUSTOM_COLLECTION_PATH,
   ADDITIONAL_ITEMS_PATH,
   CIAM_LOGIN_SRV_URL,
   COMMUNITY_PROFILE_PATH,
+  CUSTOM_COLLECTIONS_PATH,
+  CUSTOM_RECIPE_PATH,
+  CUSTOM_RECIPES_PATH,
   DEFAULT_API_HEADERS,
+  EDIT_ADDITIONAL_ITEMS_PATH,
+  EDIT_OWNERSHIP_ADDITIONAL_ITEMS_PATH,
+  EDIT_OWNERSHIP_INGREDIENT_ITEMS_PATH,
   INGREDIENT_ITEMS_PATH,
   LOGIN_PATH,
   LOGIN_REDIRECT,
+  MANAGED_COLLECTIONS_PATH,
   RECIPE_PATH,
   RECIPES_IN_CALENDAR_WEEK_PATH,
   REMOVE_ADDITIONAL_ITEMS_PATH,
+  REMOVE_CUSTOM_COLLECTION_PATH,
+  REMOVE_CUSTOM_RECIPE_PATH,
   REMOVE_INGREDIENT_ITEMS_FOR_RECIPES_PATH,
+  REMOVE_MANAGED_COLLECTION_PATH,
   REMOVE_RECIPE_FROM_CALENDAR_PATH,
+  REMOVE_RECIPE_FROM_CUSTOM_COLLECTION_PATH,
   REQUIRED_AUTH_COOKIES,
   SHOPPING_LIST_RECIPES_PATH,
   SUBSCRIPTIONS_PATH,
@@ -796,6 +822,342 @@ export class CookidooHttpClient implements ICookidooClient {
       this.ensureObject(data.content, 'remove recipe from calendar'),
       this.localization,
     );
+  }
+
+  async editIngredientItemsOwnership(
+    changes: CookidooOwnershipChange[],
+  ): Promise<CookidooIngredientItem[]> {
+    const ownedTimestamp = this.nowSeconds();
+    const result = await this.request<unknown>(
+      'post',
+      this.buildUrl(EDIT_OWNERSHIP_INGREDIENT_ITEMS_PATH),
+      'edit ingredient items ownership',
+      {
+        data: {
+          ingredients: changes.map((change) => ({
+            id: change.id,
+            isOwned: change.isOwned,
+            ownedTimestamp,
+          })),
+        },
+      },
+    );
+    const data = this.ensureObject(result, 'edit ingredient items ownership');
+    const items: any[] = data.data ?? [];
+    return items.map(ingredientItemFromJson);
+  }
+
+  async addIngredientItemsForCustomRecipes(
+    recipeIds: string[],
+  ): Promise<CookidooIngredientItem[]> {
+    const result = await this.request<unknown>(
+      'post',
+      this.buildUrl(ADD_INGREDIENT_ITEMS_FOR_RECIPES_PATH),
+      'add ingredient items for custom recipes',
+      {
+        data: {
+          recipeIDs: recipeIds.map((id) => ({ id, source: 'CUSTOMER' })),
+        },
+      },
+    );
+    const data = this.ensureObject(
+      result,
+      'add ingredient items for custom recipes',
+    );
+    return this.collectIngredientItems(data.data ?? []);
+  }
+
+  async removeIngredientItemsForCustomRecipes(
+    recipeIds: string[],
+  ): Promise<void> {
+    await this.request<void>(
+      'post',
+      this.buildUrl(REMOVE_INGREDIENT_ITEMS_FOR_RECIPES_PATH),
+      'remove ingredient items for custom recipes',
+      { data: { recipeIDs: recipeIds }, parseResponse: false },
+    );
+  }
+
+  async editAdditionalItems(
+    edits: CookidooAdditionalItemEdit[],
+  ): Promise<CookidooAdditionalItem[]> {
+    const result = await this.request<unknown>(
+      'post',
+      this.buildUrl(EDIT_ADDITIONAL_ITEMS_PATH),
+      'edit additional items',
+      {
+        data: {
+          additionalItems: edits.map((edit) => ({
+            id: edit.id,
+            name: edit.name,
+          })),
+        },
+      },
+    );
+    const data = this.ensureObject(result, 'edit additional items');
+    const items: any[] = data.data ?? [];
+    return items.map(additionalItemFromJson);
+  }
+
+  async editAdditionalItemsOwnership(
+    changes: CookidooOwnershipChange[],
+  ): Promise<CookidooAdditionalItem[]> {
+    const ownedTimestamp = this.nowSeconds();
+    const result = await this.request<unknown>(
+      'post',
+      this.buildUrl(EDIT_OWNERSHIP_ADDITIONAL_ITEMS_PATH),
+      'edit additional items ownership',
+      {
+        data: {
+          additionalItems: changes.map((change) => ({
+            id: change.id,
+            isOwned: change.isOwned,
+            ownedTimestamp,
+          })),
+        },
+      },
+    );
+    const data = this.ensureObject(result, 'edit additional items ownership');
+    const items: any[] = data.data ?? [];
+    return items.map(additionalItemFromJson);
+  }
+
+  async addCustomRecipesToCalendar(
+    day: string,
+    recipeIds: string[],
+  ): Promise<CookidooCalendarDay> {
+    const result = await this.request<unknown>(
+      'put',
+      this.buildUrl(ADD_RECIPES_TO_CALENDAR_PATH),
+      'add custom recipes to calendar',
+      { data: { recipeIds, dayKey: day, recipeSource: 'CUSTOMER' } },
+    );
+    const data = this.ensureObject(result, 'add custom recipes to calendar');
+    return calendarDayFromJson(
+      this.ensureObject(data.content, 'add custom recipes to calendar'),
+      this.localization,
+    );
+  }
+
+  async removeCustomRecipeFromCalendar(
+    day: string,
+    recipeId: string,
+  ): Promise<CookidooCalendarDay> {
+    const result = await this.request<unknown>(
+      'delete',
+      this.buildUrl(REMOVE_RECIPE_FROM_CALENDAR_PATH, {
+        day,
+        recipe: recipeId,
+      }),
+      'remove custom recipe from calendar',
+      { params: { recipeSource: 'CUSTOMER' } },
+    );
+    const data = this.ensureObject(
+      result,
+      'remove custom recipe from calendar',
+    );
+    return calendarDayFromJson(
+      this.ensureObject(data.content, 'remove custom recipe from calendar'),
+      this.localization,
+    );
+  }
+
+  async listCustomRecipes(): Promise<CookidooCustomRecipe[]> {
+    const result = await this.request<unknown>(
+      'get',
+      this.buildUrl(CUSTOM_RECIPES_PATH),
+      'listing custom recipes',
+    );
+    const data = this.ensureObject(result, 'listing custom recipes');
+    const items: any[] = data.items ?? [];
+    return items.map((item) => customRecipeFromJson(item, this.localization));
+  }
+
+  async getCustomRecipe(id: string): Promise<CookidooCustomRecipe> {
+    const result = await this.request<unknown>(
+      'get',
+      this.buildUrl(CUSTOM_RECIPE_PATH, { id }),
+      'loading custom recipe',
+    );
+    return customRecipeFromJson(
+      this.ensureObject(result, 'loading custom recipe'),
+      this.localization,
+    );
+  }
+
+  async addCustomRecipeFrom(
+    recipeId: string,
+    servingSize: number,
+  ): Promise<CookidooCustomRecipe> {
+    const result = await this.request<unknown>(
+      'post',
+      this.buildUrl(ADD_CUSTOM_RECIPE_PATH),
+      'add custom recipe',
+      {
+        data: {
+          recipeUrl: this.buildUrl(RECIPE_PATH, { id: recipeId }),
+          servingSize,
+        },
+      },
+    );
+    return customRecipeFromJson(
+      this.ensureObject(result, 'add custom recipe'),
+      this.localization,
+    );
+  }
+
+  async removeCustomRecipe(id: string): Promise<void> {
+    await this.request<void>(
+      'delete',
+      this.buildUrl(REMOVE_CUSTOM_RECIPE_PATH, { id }),
+      'remove custom recipe',
+      { parseResponse: false },
+    );
+  }
+
+  async countManagedCollections(): Promise<CookidooCollectionPage> {
+    const result = await this.request<unknown>(
+      'get',
+      this.buildUrl(MANAGED_COLLECTIONS_PATH),
+      'counting managed collections',
+    );
+    return this.pageFromJson(result, 'counting managed collections');
+  }
+
+  async getManagedCollections(page = 0): Promise<CookidooCollection[]> {
+    const result = await this.request<unknown>(
+      'get',
+      this.buildUrl(MANAGED_COLLECTIONS_PATH),
+      'loading managed collections',
+      { params: { page: String(page) } },
+    );
+    const data = this.ensureObject(result, 'loading managed collections');
+    const lists: any[] = data.managedlists ?? [];
+    return lists.map(collectionFromJson);
+  }
+
+  async addManagedCollection(
+    collectionId: string,
+  ): Promise<CookidooCollection> {
+    const result = await this.request<unknown>(
+      'post',
+      this.buildUrl(ADD_MANAGED_COLLECTION_PATH),
+      'add managed collection',
+      { data: { collectionId } },
+    );
+    const data = this.ensureObject(result, 'add managed collection');
+    return collectionFromJson(
+      this.ensureObject(data.content, 'add managed collection'),
+    );
+  }
+
+  async removeManagedCollection(collectionId: string): Promise<void> {
+    await this.request<void>(
+      'delete',
+      this.buildUrl(REMOVE_MANAGED_COLLECTION_PATH, { id: collectionId }),
+      'remove managed collection',
+      { parseResponse: false },
+    );
+  }
+
+  async countCustomCollections(): Promise<CookidooCollectionPage> {
+    const result = await this.request<unknown>(
+      'get',
+      this.buildUrl(CUSTOM_COLLECTIONS_PATH),
+      'counting custom collections',
+    );
+    return this.pageFromJson(result, 'counting custom collections');
+  }
+
+  async getCustomCollections(page = 0): Promise<CookidooCollection[]> {
+    const result = await this.request<unknown>(
+      'get',
+      this.buildUrl(CUSTOM_COLLECTIONS_PATH),
+      'loading custom collections',
+      { params: { page: String(page) } },
+    );
+    const data = this.ensureObject(result, 'loading custom collections');
+    const lists: any[] = data.customlists ?? [];
+    return lists.map(collectionFromJson);
+  }
+
+  async addCustomCollection(name: string): Promise<CookidooCollection> {
+    const result = await this.request<unknown>(
+      'post',
+      this.buildUrl(ADD_CUSTOM_COLLECTION_PATH),
+      'add custom collection',
+      { data: { title: name } },
+    );
+    const data = this.ensureObject(result, 'add custom collection');
+    return collectionFromJson(
+      this.ensureObject(data.content, 'add custom collection'),
+    );
+  }
+
+  async removeCustomCollection(collectionId: string): Promise<void> {
+    await this.request<void>(
+      'delete',
+      this.buildUrl(REMOVE_CUSTOM_COLLECTION_PATH, { id: collectionId }),
+      'remove custom collection',
+      { parseResponse: false },
+    );
+  }
+
+  async addRecipesToCustomCollection(
+    collectionId: string,
+    recipeIds: string[],
+  ): Promise<CookidooCollection> {
+    const result = await this.request<unknown>(
+      'put',
+      this.buildUrl(ADD_RECIPES_TO_CUSTOM_COLLECTION_PATH, {
+        id: collectionId,
+      }),
+      'add recipes to custom collection',
+      { data: { recipeIds } },
+    );
+    const data = this.ensureObject(result, 'add recipes to custom collection');
+    return collectionFromJson(
+      this.ensureObject(data.content, 'add recipes to custom collection'),
+    );
+  }
+
+  async removeRecipeFromCustomCollection(
+    collectionId: string,
+    recipeId: string,
+  ): Promise<CookidooCollection> {
+    const result = await this.request<unknown>(
+      'delete',
+      this.buildUrl(REMOVE_RECIPE_FROM_CUSTOM_COLLECTION_PATH, {
+        id: collectionId,
+        recipe: recipeId,
+      }),
+      'remove recipe from custom collection',
+    );
+    const data = this.ensureObject(
+      result,
+      'remove recipe from custom collection',
+    );
+    return collectionFromJson(
+      this.ensureObject(data.content, 'remove recipe from custom collection'),
+    );
+  }
+
+  /** Current epoch time in seconds, used for the `ownedTimestamp` fields. */
+  private nowSeconds(): number {
+    return Math.floor(Date.now() / 1000);
+  }
+
+  /** Read the `page` pagination block (totalElements/totalPages). */
+  private pageFromJson(
+    result: unknown,
+    operation: string,
+  ): CookidooCollectionPage {
+    const data = this.ensureObject(result, operation);
+    const page = this.ensureObject(data.page ?? {}, operation);
+    return {
+      totalElements: Number(page.totalElements ?? 0),
+      totalPages: Number(page.totalPages ?? 0),
+    };
   }
 
   /** Flatten the `recipeIngredientGroups` of a list of recipes into items. */

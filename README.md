@@ -125,9 +125,30 @@ Authentication is handled by the NestJS process via `COOKIDOO_EMAIL` /
 | `cookidoo_add_additional_items` | command | Add free-text items to the list |
 | `cookidoo_remove_additional_items` | command | Remove free-text items from the list |
 | `cookidoo_clear_shopping_list` | command | Empty the shopping list |
+| `cookidoo_mark_ingredient_items` | command | Mark ingredient items as bought/owned |
+| `cookidoo_mark_additional_items` | command | Mark free-text items as bought/owned |
+| `cookidoo_edit_additional_items` | command | Rename free-text items |
+| `cookidoo_add_custom_recipe_ingredients` | command | Add custom recipes' ingredients to the list |
+| `cookidoo_remove_custom_recipe_ingredients` | command | Remove custom recipes' ingredients from the list |
 | `cookidoo_get_calendar_week` | query | Recipes planned on the meal-planner calendar for a week |
 | `cookidoo_add_recipes_to_calendar` | command | Add recipes to the meal-planner calendar on a day |
 | `cookidoo_remove_recipe_from_calendar` | command | Remove a recipe from the meal-planner calendar on a day |
+| `cookidoo_add_custom_recipes_to_calendar` | command | Add custom recipes to the calendar on a day |
+| `cookidoo_remove_custom_recipe_from_calendar` | command | Remove a custom recipe from the calendar on a day |
+| `cookidoo_list_custom_recipes` | query | All user-created (custom) recipes |
+| `cookidoo_get_custom_recipe` | query | Full details of a custom recipe by id |
+| `cookidoo_add_custom_recipe` | command | Create a custom recipe from an existing recipe |
+| `cookidoo_remove_custom_recipe` | command | Delete a custom recipe |
+| `cookidoo_count_managed_collections` | query | Total managed collections / pages |
+| `cookidoo_get_managed_collections` | query | A page of managed collections |
+| `cookidoo_add_managed_collection` | command | Subscribe to a managed collection |
+| `cookidoo_remove_managed_collection` | command | Unsubscribe from a managed collection |
+| `cookidoo_count_custom_collections` | query | Total custom collections / pages |
+| `cookidoo_get_custom_collections` | query | A page of custom collections |
+| `cookidoo_add_custom_collection` | command | Create a custom collection |
+| `cookidoo_remove_custom_collection` | command | Delete a custom collection |
+| `cookidoo_add_recipes_to_custom_collection` | command | Add recipes to a custom collection |
+| `cookidoo_remove_recipe_from_custom_collection` | command | Remove a recipe from a custom collection |
 
 ### Adding a tool
 
@@ -140,10 +161,12 @@ Authentication is handled by the NestJS process via `COOKIDOO_EMAIL` /
 
 ## Not yet migrated
 
-The upstream library also covers custom recipes and collections
-(managed/custom). These are intentionally left out of this migration and can be
-added following the steps above. The meal-planning calendar (add/list/remove
-recipes on your week) is now covered by the `cookidoo_*_calendar*` tools.
+The migration now covers the full upstream surface used here: account, recipe
+search & details, shopping list (incl. ownership/edit), the meal-planning
+calendar, custom recipes and collections (managed/custom). The only upstream
+feature intentionally left out is on-disk session persistence
+(`save_cookies` / `load_cookies`) — this server keeps its session in memory and
+re-authenticates automatically, so it isn't needed.
 
 ## License
 

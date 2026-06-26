@@ -13,6 +13,23 @@ import {
   CookidooIngredientItem,
 } from '../types/cookidoo-shopping-list.type';
 import { CookidooCalendarDay } from '../types/cookidoo-calendar.type';
+import { CookidooCustomRecipe } from '../types/cookidoo-custom-recipe.type';
+import {
+  CookidooCollection,
+  CookidooCollectionPage,
+} from '../types/cookidoo-collection.type';
+
+/** Ownership change for a shopping-list item ("bought" / "not bought"). */
+export interface CookidooOwnershipChange {
+  readonly id: string;
+  readonly isOwned: boolean;
+}
+
+/** A rename of a free-text ("additional") shopping-list item. */
+export interface CookidooAdditionalItemEdit {
+  readonly id: string;
+  readonly name: string;
+}
 
 /** DI token for the {@link ICookidooClient} port. */
 export const COOKIDOO_CLIENT = Symbol('COOKIDOO_CLIENT');
@@ -87,4 +104,90 @@ export interface ICookidooClient {
     day: string,
     recipeId: string,
   ): Promise<CookidooCalendarDay>;
+
+  /** Mark ingredient items as owned/not-owned ("bought") on the shopping list. */
+  editIngredientItemsOwnership(
+    changes: CookidooOwnershipChange[],
+  ): Promise<CookidooIngredientItem[]>;
+
+  /** Add the ingredients of the given custom recipes to the shopping list. */
+  addIngredientItemsForCustomRecipes(
+    recipeIds: string[],
+  ): Promise<CookidooIngredientItem[]>;
+
+  /** Remove the ingredients of the given custom recipes from the shopping list. */
+  removeIngredientItemsForCustomRecipes(recipeIds: string[]): Promise<void>;
+
+  /** Rename free-text ("additional") shopping-list items. */
+  editAdditionalItems(
+    edits: CookidooAdditionalItemEdit[],
+  ): Promise<CookidooAdditionalItem[]>;
+
+  /** Mark free-text items as owned/not-owned ("bought") on the shopping list. */
+  editAdditionalItemsOwnership(
+    changes: CookidooOwnershipChange[],
+  ): Promise<CookidooAdditionalItem[]>;
+
+  /** Add custom recipes to the meal-planner calendar on the given day. */
+  addCustomRecipesToCalendar(
+    day: string,
+    recipeIds: string[],
+  ): Promise<CookidooCalendarDay>;
+
+  /** Remove a single custom recipe from the calendar on the given day. */
+  removeCustomRecipeFromCalendar(
+    day: string,
+    recipeId: string,
+  ): Promise<CookidooCalendarDay>;
+
+  /** All user-created ("custom") recipes. */
+  listCustomRecipes(): Promise<CookidooCustomRecipe[]>;
+
+  /** A single custom recipe by id. */
+  getCustomRecipe(id: string): Promise<CookidooCustomRecipe>;
+
+  /** Create a custom recipe derived from an existing recipe + serving size. */
+  addCustomRecipeFrom(
+    recipeId: string,
+    servingSize: number,
+  ): Promise<CookidooCustomRecipe>;
+
+  /** Delete a custom recipe by id. */
+  removeCustomRecipe(id: string): Promise<void>;
+
+  /** Total elements/pages of managed collections (for pagination). */
+  countManagedCollections(): Promise<CookidooCollectionPage>;
+
+  /** A page of managed collections (subscribable Cookidoo collections). */
+  getManagedCollections(page?: number): Promise<CookidooCollection[]>;
+
+  /** Subscribe to a managed collection by id. */
+  addManagedCollection(collectionId: string): Promise<CookidooCollection>;
+
+  /** Unsubscribe from a managed collection by id. */
+  removeManagedCollection(collectionId: string): Promise<void>;
+
+  /** Total elements/pages of custom collections (for pagination). */
+  countCustomCollections(): Promise<CookidooCollectionPage>;
+
+  /** A page of the user's own ("custom") collections. */
+  getCustomCollections(page?: number): Promise<CookidooCollection[]>;
+
+  /** Create a custom collection with the given name. */
+  addCustomCollection(name: string): Promise<CookidooCollection>;
+
+  /** Delete a custom collection by id. */
+  removeCustomCollection(collectionId: string): Promise<void>;
+
+  /** Add recipes to a custom collection. */
+  addRecipesToCustomCollection(
+    collectionId: string,
+    recipeIds: string[],
+  ): Promise<CookidooCollection>;
+
+  /** Remove a single recipe from a custom collection. */
+  removeRecipeFromCustomCollection(
+    collectionId: string,
+    recipeId: string,
+  ): Promise<CookidooCollection>;
 }
