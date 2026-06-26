@@ -1,0 +1,49 @@
+[changelog]
+header = """
+# Changelog
+
+All notable changes to this project will be documented in this file.
+"""
+body = """
+{% if version %}\
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+## [unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for c in commits %}\
+- {% if c.scope %}**{{ c.scope }}:** {% endif %}{{ c.message | upper_first }} ({{ c.id | truncate(length=7, end="") }})
+{% endfor %}\
+{% endfor %}\
+"""
+footer = ""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+tag_pattern = "v[0-9]+\\.[0-9]+\\.[0-9]+(-[a-z]+\\.[0-9]+)?"
+ignore_tags = ""
+topo_order = false
+sort_commits = "oldest"
+
+commit_parsers = [
+  { message = "^feat",              group = "Features" },
+  { message = "^fix",               group = "Bug Fixes" },
+  { message = "^perf",              group = "Performance" },
+  { message = "^refactor",          group = "Refactor" },
+  { message = "^docs",              group = "Documentation" },
+  { message = "^test",              group = "Testing" },
+  { message = "^ci",                group = "CI" },
+  { message = "^build",             group = "Build" },
+  { message = "^style",             group = "Style" },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore",             group = "Chore" },
+  { message = "^revert",            group = "Revert" },
+]
+
+[remote.github]
+owner = "sisques-labs"
+repo  = "cookidoo-mcp"

@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version bump type
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      release_type:
+        description: Release channel
+        required: true
+        default: stable
+        type: choice
+        options:
+          - stable
+          - alpha
+          - beta
+          - rc
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: sisques-labs/workflows/.github/workflows/docker-release.yml@main
+    with:
+      image_name: sisqueslabs/cookidoo-mcp
+      ghcr_image_name: ghcr.io/sisques-labs/cookidoo-mcp
+      push_ghcr: true
+      version: ${{ inputs.version }}
+      release_type: ${{ inputs.release_type }}
+      node_version: "22"
+      run_lint: true
+      run_test: true
+      platforms: linux/amd64,linux/arm64
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    permissions:
+      contents: write
+      packages: write
