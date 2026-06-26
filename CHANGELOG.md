@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.2.2-beta.0] - 2026-06-26
+
+### Documentation
+- Document COOKIDOO_DEBUG and health endpoint, fix license (f480482)
 ## [0.2.1] - 2026-06-26
 
 ### Documentation
