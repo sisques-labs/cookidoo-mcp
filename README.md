@@ -53,6 +53,8 @@ Credentials and localization come from environment variables (see
 
 ## Running
 
+### Local (pnpm)
+
 ```bash
 pnpm install
 cp .env.example .env   # then fill in your credentials
@@ -61,7 +63,36 @@ pnpm dev               # watch mode
 pnpm build && pnpm prod
 ```
 
-The MCP endpoint is then available at `http://localhost:3000/api/mcp`.
+### Docker
+
+```bash
+docker build -t cookidoo-mcp .
+```
+
+With an env file:
+
+```bash
+cp .env.example .env   # then fill in your credentials
+docker run --rm -p 3000:3000 --env-file .env cookidoo-mcp
+```
+
+Or pass variables directly:
+
+```bash
+docker run --rm -p 3000:3000 \
+  -e COOKIDOO_EMAIL=your@email.com \
+  -e COOKIDOO_PASSWORD=your-password \
+  cookidoo-mcp
+```
+
+Optional localization and port overrides work the same way (`-e PORT=3010`,
+`-e COOKIDOO_COUNTRY_CODE=es`, etc.).
+
+If you set a custom `PORT`, map the same port on the host and in the container
+(e.g. `-p 3010:3010` when `PORT=3010`).
+
+The MCP endpoint is then available at `http://localhost:3000/api/mcp` (or your
+custom port).
 
 ## Cursor
 
