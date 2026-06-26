@@ -68,6 +68,21 @@ const BROWSER_ACCEPT =
   'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,' +
   'image/webp,*/*;q=0.8';
 
+// Headers a real Chrome sends on a navigation. cidaas exposes no CSRF form
+// field, so the login POST is accepted based on Origin/Referer/Sec-Fetch — a
+// bare POST just re-renders the login page.
+const BROWSER_NAV_HEADERS: Record<string, string> = {
+  'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+  'Upgrade-Insecure-Requests': '1',
+  'Sec-Fetch-Dest': 'document',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-User': '?1',
+  'sec-ch-ua':
+    '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"Windows"',
+};
+
 const MAX_REDIRECTS = 30;
 
 interface RequestOptions {
@@ -149,6 +164,17 @@ export class CookidooHttpClient implements ICookidooClient {
     const cookie = await this.jar.getCookieString(url);
     if (cookie) {
       headers.Cookie = cookie;
+    }
+    if (this.debug) {
+      const sent = cookie
+        ? cookie
+            .split(';')
+            .map((c) => c.split('=')[0].trim())
+            .join(', ')
+        : '-';
+      this.logger.debug(
+        `  -> ${method.toUpperCase()} ${url} cookies=[${sent}]`,
+      );
     }
 
     const response = await this.http.request({
@@ -236,6 +262,8 @@ export class CookidooHttpClient implements ICookidooClient {
         continue;
       }
 
+      // Expose the final (post-redirect) URL so callers can build a Referer.
+      (response as AxiosResponse & { finalUrl?: string }).finalUrl = currentUrl;
       return response;
     }
 
@@ -290,10 +318,15 @@ export class CookidooHttpClient implements ICookidooClient {
     this.logger.log('Logging in to Cookidoo');
 
     let loginHtml: string;
+    let loginPageUrl = loginUrl;
     try {
       const resp = await this.sendFollowingRedirects('get', loginUrl, {
         responseType: 'text',
-        headers: { Accept: BROWSER_ACCEPT },
+        headers: {
+          Accept: BROWSER_ACCEPT,
+          ...BROWSER_NAV_HEADERS,
+          'Sec-Fetch-Site': 'none',
+        },
       });
       if (resp.status !== 200) {
         throw new CookidooAuthException(
@@ -301,6 +334,8 @@ export class CookidooHttpClient implements ICookidooClient {
         );
       }
       loginHtml = resp.data as string;
+      loginPageUrl =
+        (resp as AxiosResponse & { finalUrl?: string }).finalUrl ?? loginUrl;
     } catch (error) {
       throw this.wrapNetworkError(error, 'reach login page');
     }
@@ -320,7 +355,17 @@ export class CookidooHttpClient implements ICookidooClient {
             password: this.config.password,
           }),
           responseType: 'text',
-          headers: { Accept: BROWSER_ACCEPT },
+          // Submit the form like a real browser navigation: cidaas has no CSRF
+          // form field, so it relies on Origin/Referer/Sec-Fetch to accept the
+          // POST. Without these it just re-renders the login page.
+          headers: {
+            Accept: BROWSER_ACCEPT,
+            ...BROWSER_NAV_HEADERS,
+            'Sec-Fetch-Site': 'same-origin',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Origin: new URL(CIAM_LOGIN_SRV_URL).origin,
+            Referer: loginPageUrl,
+          },
         },
       );
     } catch (error) {
