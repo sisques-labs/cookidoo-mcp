@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cookidoo-mcp · MCP server for Cookidoo</title>
+  <meta name="description" content="An MCP server for Cookidoo, built with NestJS. Exposes recipes, the shopping list, the meal planner and your subscription to AI tools as MCP tools." />
+  <meta name="color-scheme" content="light dark" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="cookidoo-mcp" />
+  <meta property="og:description" content="An MCP server for Cookidoo, built with NestJS — recipes, shopping list, meal planner and collections as MCP tools." />
+  <meta property="og:type" content="website" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍲</text></svg>" />
+
+  <style>
+    :root {
+      --max: 1080px;
+      --radius: 14px;
+      --radius-sm: 9px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --ease: cubic-bezier(.4, 0, .2, 1);
+    }
+
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --bg-soft: #f7f7f8;
+      --bg-elevated: #ffffff;
+      --border: #ececef;
+      --border-strong: #e0e0e6;
+      --text: #16161a;
+      --text-soft: #5a5a66;
+      --text-faint: #8a8a96;
+      --accent: #16a34a;
+      --accent-soft: #16a34a14;
+      --accent-text: #15803d;
+      --code-bg: #f4f4f6;
+      --shadow: 0 1px 2px rgba(16,16,26,.04), 0 8px 24px rgba(16,16,26,.05);
+      --tag-query-bg: #16a34a14;
+      --tag-query-text: #15803d;
+      --tag-cmd-bg: #2563eb14;
+      --tag-cmd-text: #1d4ed8;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0c0c0f;
+      --bg-soft: #141418;
+      --bg-elevated: #16161b;
+      --border: #232329;
+      --border-strong: #2e2e36;
+      --text: #f2f2f5;
+      --text-soft: #a8a8b3;
+      --text-faint: #6e6e7a;
+      --accent: #2bd66f;
+      --accent-soft: #2bd66f1a;
+      --accent-text: #54e08c;
+      --code-bg: #16161b;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.4);
+      --tag-query-bg: #2bd66f1a;
+      --tag-query-text: #54e08c;
+      --tag-cmd-bg: #5b8cff1a;
+      --tag-cmd-text: #84a8ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      transition: background .3s var(--ease), color .3s var(--ease);
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- Header ---------- */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: saturate(180%) blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -.01em; }
+    .brand .logo { font-size: 22px; }
+    .brand code { font-family: var(--mono); font-size: 15px; background: none; padding: 0; }
+    .nav-links { display: flex; align-items: center; gap: 4px; }
+    .nav-links a.navlink {
+      padding: 7px 12px; border-radius: var(--radius-sm); color: var(--text-soft);
+      font-size: 14px; font-weight: 500; transition: background .15s, color .15s;
+    }
+    .nav-links a.navlink:hover { background: var(--bg-soft); color: var(--text); }
+
+    .ctrl {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 36px; min-width: 36px; padding: 0 10px; gap: 6px;
+      border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+      background: var(--bg-elevated); color: var(--text-soft);
+      cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 600;
+      transition: all .15s var(--ease);
+    }
+    .ctrl:hover { color: var(--text); border-color: var(--text-faint); }
+    .ctrl svg { width: 17px; height: 17px; }
+    .controls { display: flex; align-items: center; gap: 8px; }
+    .lang-btn span { font-variant-numeric: tabular-nums; }
+
+    .hide-mobile { }
+    @media (max-width: 720px) {
+      .hide-mobile { display: none; }
+    }
+
+    /* ---------- Hero ---------- */
+    .hero { padding: 84px 0 56px; text-align: center; position: relative; overflow: hidden; }
+    .hero::before {
+      content: ""; position: absolute; inset: 0; z-index: -1;
+      background:
+        radial-gradient(60% 60% at 50% 0%, var(--accent-soft), transparent 70%);
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 13px; border-radius: 999px;
+      border: 1px solid var(--border-strong); background: var(--bg-elevated);
+      font-size: 13px; color: var(--text-soft); font-weight: 500; margin-bottom: 26px;
+    }
+    .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .hero h1 {
+      font-size: clamp(2.3rem, 6vw, 3.7rem); font-weight: 720;
+      letter-spacing: -.035em; line-height: 1.05; margin-bottom: 20px;
+    }
+    .hero h1 .grad {
+      background: linear-gradient(120deg, var(--accent-text), var(--accent));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero p.lead {
+      font-size: clamp(1.05rem, 2.4vw, 1.28rem); color: var(--text-soft);
+      max-width: 640px; margin: 0 auto 36px; line-height: 1.6;
+    }
+    .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 12px 22px; border-radius: var(--radius-sm); font-weight: 600; font-size: 15px;
+      transition: all .18s var(--ease); border: 1px solid transparent;
+    }
+    .btn svg { width: 18px; height: 18px; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    [data-theme="dark"] .btn-primary { color: #06140b; }
+    .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 8px 20px var(--accent-soft); }
+    .btn-ghost { background: var(--bg-elevated); border-color: var(--border-strong); color: var(--text); }
+    .btn-ghost:hover { border-color: var(--text-faint); transform: translateY(-1px); }
+
+    /* ---------- Stats ---------- */
+    .stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      background: var(--border); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin-top: 56px;
+    }
+    .stat { background: var(--bg); padding: 26px 18px; text-align: center; }
+    .stat .num {
+      font-size: 1.9rem; font-weight: 720; letter-spacing: -.03em; color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .stat .lbl { font-size: 13px; color: var(--text-faint); margin-top: 4px; font-weight: 500; }
+    @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+    /* ---------- Sections ---------- */
+    section.block { padding: 72px 0; border-top: 1px solid var(--border); }
+    .section-head { max-width: 680px; margin-bottom: 44px; }
+    .eyebrow {
+      font-size: 13px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--accent-text); margin-bottom: 12px;
+    }
+    h2 { font-size: clamp(1.7rem, 4vw, 2.3rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.12; }
+    .section-head p { color: var(--text-soft); font-size: 1.08rem; margin-top: 14px; }
+
+    /* ---------- Feature grid ---------- */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    @media (max-width: 860px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 26px 24px; transition: all .2s var(--ease);
+    }
+    .card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); transform: translateY(-2px); }
+    .card .ico {
+      width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center;
+      background: var(--accent-soft); margin-bottom: 16px; font-size: 21px;
+    }
+    .card h3 { font-size: 1.08rem; font-weight: 650; margin-bottom: 7px; letter-spacing: -.01em; }
+    .card p { color: var(--text-soft); font-size: .95rem; line-height: 1.6; }
+
+    /* ---------- Architecture ---------- */
+    .arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+    @media (max-width: 820px) { .arch-grid { grid-template-columns: 1fr; gap: 28px; } }
+    .arch-list { list-style: none; display: flex; flex-direction: column; gap: 18px; }
+    .arch-list li { display: flex; gap: 14px; }
+    .arch-list .pill {
+      flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px;
+      background: var(--accent-soft); color: var(--accent-text);
+      display: grid; place-items: center; font-weight: 700; font-size: 13px; font-family: var(--mono);
+    }
+    .arch-list h4 { font-size: .98rem; font-weight: 650; margin-bottom: 2px; }
+    .arch-list p { color: var(--text-soft); font-size: .9rem; line-height: 1.55; }
+    .arch-list code { font-family: var(--mono); font-size: .82em; background: var(--code-bg); padding: 1px 6px; border-radius: 5px; }
+
+    /* ---------- Code block ---------- */
+    .code {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; font-family: var(--mono);
+    }
+    .code-head {
+      display: flex; align-items: center; gap: 7px; padding: 12px 16px;
+      border-bottom: 1px solid var(--border); background: var(--bg-soft);
+    }
+    .code-head .dots { display: flex; gap: 6px; }
+    .code-head .dots i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+    .code-head .dots i:nth-child(1){ background:#ff5f57;} .code-head .dots i:nth-child(2){ background:#febc2e;} .code-head .dots i:nth-child(3){ background:#28c840;}
+    .code-head .file { font-size: 12px; color: var(--text-faint); margin-left: 6px; }
+    .code pre { padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.7; }
+    .code .c-com { color: var(--text-faint); }
+    .code .c-key { color: var(--accent-text); }
+    .code .c-str { color: #c98a3a; }
+    [data-theme="dark"] .code .c-str { color: #e3b341; }
+    .code .c-pun { color: var(--text-faint); }
+
+    /* ---------- Quickstart steps ---------- */
+    .steps { display: grid; gap: 20px; }
+    .step { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: start; }
+    .step .n {
+      width: 34px; height: 34px; border-radius: 50%; background: var(--bg-elevated);
+      border: 1px solid var(--border-strong); display: grid; place-items: center;
+      font-weight: 700; font-size: 14px; color: var(--accent-text); flex-shrink: 0;
+    }
+    .step .body { min-width: 0; }
+    .step h4 { font-size: 1.02rem; font-weight: 650; margin-bottom: 10px; }
+    .step .code { margin-top: 4px; }
+
+    /* ---------- Config table ---------- */
+    .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th {
+      text-align: left; padding: 13px 18px; background: var(--bg-soft);
+      font-weight: 650; color: var(--text-soft); font-size: 12.5px;
+      text-transform: uppercase; letter-spacing: .04em; white-space: nowrap;
+    }
+    tbody td { padding: 13px 18px; border-top: 1px solid var(--border); vertical-align: top; }
+    tbody tr:hover { background: var(--bg-soft); }
+    td code, th code { font-family: var(--mono); font-size: .86em; background: var(--code-bg); padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
+    .req-yes { color: var(--accent-text); font-weight: 600; }
+    .req-no { color: var(--text-faint); }
+    .note {
+      display: flex; gap: 12px; padding: 16px 18px; margin-top: 18px;
+      background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+      border-radius: var(--radius-sm); font-size: .92rem; color: var(--text-soft); line-height: 1.55;
+    }
+    .note b { color: var(--text); }
+    .note .ni { flex-shrink: 0; }
+
+    /* ---------- Tools ---------- */
+    .tool-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
+    .chip {
+      padding: 7px 15px; border-radius: 999px; border: 1px solid var(--border-strong);
+      background: var(--bg-elevated); color: var(--text-soft); font-size: 13.5px; font-weight: 550;
+      cursor: pointer; transition: all .15s; font-family: var(--font);
+    }
+    .chip:hover { color: var(--text); border-color: var(--text-faint); }
+    .chip.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+    .tool-groups { display: grid; gap: 30px; }
+    .tool-group h3 {
+      font-size: 1.12rem; font-weight: 650; margin-bottom: 4px; display: flex; align-items: center; gap: 10px;
+      letter-spacing: -.01em;
+    }
+    .tool-group h3 .emoji { font-size: 1.15rem; }
+    .tool-group .gdesc { color: var(--text-faint); font-size: .9rem; margin-bottom: 16px; }
+    .tool-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    @media (max-width: 760px) { .tool-list { grid-template-columns: 1fr; } }
+    .tool {
+      display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .tool:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+    .tool .meta { min-width: 0; }
+    .tool .tname { font-family: var(--mono); font-size: 12.8px; font-weight: 600; color: var(--text); word-break: break-word; }
+    .tool .tdesc { font-size: 12.8px; color: var(--text-soft); margin-top: 3px; line-height: 1.45; }
+    .tag {
+      flex-shrink: 0; font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+      text-transform: uppercase; letter-spacing: .04em; margin-top: 1px;
+    }
+    .tag.query { background: var(--tag-query-bg); color: var(--tag-query-text); }
+    .tag.command { background: var(--tag-cmd-bg); color: var(--tag-cmd-text); }
+
+    /* ---------- Footer ---------- */
+    footer { border-top: 1px solid var(--border); padding: 44px 0; margin-top: 20px; }
+    .foot {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    }
+    .foot .left { display: flex; align-items: center; gap: 10px; color: var(--text-soft); font-size: 14px; }
+    .foot a { color: var(--text-soft); font-size: 14px; transition: color .15s; }
+    .foot a:hover { color: var(--text); }
+    .foot .right { display: flex; gap: 20px; }
+
+    [data-lang-es] { display: none; }
+    html[lang="es"] [data-lang-en] { display: none; }
+    html[lang="es"] [data-lang-es] { display: revert; }
+
+    /* reveal */
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="#top">
+        <span class="logo">🍲</span>
+        <code>cookidoo-mcp</code>
+      </a>
+      <nav class="nav-links">
+        <a class="navlink hide-mobile" href="#features"><span data-lang-en>Features</span><span data-lang-es>Características</span></a>
+        <a class="navlink hide-mobile" href="#architecture"><span data-lang-en>Architecture</span><span data-lang-es>Arquitectura</span></a>
+        <a class="navlink hide-mobile" href="#quickstart"><span data-lang-en>Quickstart</span><span data-lang-es>Inicio</span></a>
+        <a class="navlink hide-mobile" href="#tools"><span data-lang-en>Tools</span><span data-lang-es>Herramientas</span></a>
+        <div class="controls">
+          <button class="ctrl lang-btn" id="langBtn" aria-label="Switch language">
+            <span id="langLabel">ES</span>
+          </button>
+          <button class="ctrl" id="themeBtn" aria-label="Toggle theme">
+            <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="wrap">
+        <span class="badge">
+          <span class="dot"></span>
+          <span data-lang-en>Model Context Protocol · NestJS</span>
+          <span data-lang-es>Model Context Protocol · NestJS</span>
+        </span>
+        <h1>
+          <span data-lang-en>Your <span class="grad">Cookidoo</span><br/>account, for AI.</span>
+          <span data-lang-es>Tu cuenta de <span class="grad">Cookidoo</span>,<br/>para la IA.</span>
+        </h1>
+        <p class="lead">
+          <span data-lang-en>An <b>MCP server</b> that exposes your Cookidoo recipes, shopping list, meal planner and collections to Claude, IDEs and any AI agent — as a clean set of typed tools.</span>
+          <span data-lang-es>Un <b>servidor MCP</b> que expone tus recetas de Cookidoo, la lista de la compra, el planificador de menús y las colecciones a Claude, IDEs y cualquier agente de IA — como un conjunto de herramientas tipadas.</span>
+        </p>
+        <div class="cta">
+          <a class="btn btn-primary" href="#quickstart">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <span data-lang-en>Get started</span><span data-lang-es>Empezar</span>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/sisques-labs/cookidoo-mcp" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.5v-2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            <span>GitHub</span>
+          </a>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="num">36</div><div class="lbl"><span data-lang-en>MCP tools</span><span data-lang-es>Herramientas MCP</span></div></div>
+          <div class="stat"><div class="num">6</div><div class="lbl"><span data-lang-en>Tool domains</span><span data-lang-es>Dominios</span></div></div>
+          <div class="stat"><div class="num">100%</div><div class="lbl"><span data-lang-en>TypeScript</span><span data-lang-es>TypeScript</span></div></div>
+          <div class="stat"><div class="num">DDD</div><div class="lbl"><span data-lang-en>CQRS · Hexagonal</span><span data-lang-es>CQRS · Hexagonal</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="block" id="features">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="eyebrow"><span data-lang-en>What it does</span><span data-lang-es>Qué hace</span></div>
+          <h2><span data-lang-en>Everything in your kitchen, scriptable.</span><span data-lang-es>Toda tu cocina, programable.</span></h2>
+          <p>
+            <span data-lang-en>cookidoo-mcp is a TypeScript rewrite of the Python <code>cookidoo-api</code>, wrapped as an MCP server so any AI client can read and act on your account.</span>
+            <span data-lang-es>cookidoo-mcp es una reescritura en TypeScript del <code>cookidoo-api</code> de Python, empaquetada como servidor MCP para que cualquier cliente de IA lea y actúe sobre tu cuenta.</span>
+          </p>
+        </div>
+        <div class="features">
+          <div class="card reveal"><div class="ico">🔎</div>
+            <h3><span data-lang-en>Recipe search</span><span data-lang-es>Búsqueda de recetas</span></h3>
+            <p><span data-lang-en>Search the catalogue with filters and pull full recipe details by id.</span><span data-lang-es>Busca en el catálogo con filtros y obtén los detalles completos de una receta por id.</span></p>
+          </div>
+          <div class="card reveal"><div class="ico">🛒</div>
+            <h3><span data-lang-en>Shopping list</span><span data-lang-es>Lista de la compra</span></h3>
+            <p><span data-lang-en>Add or remove recipe ingredients and free-text items, mark them as bought, rename or clear the list.</span><span data-lang-es>Añade o quita ingredientes y artículos libres, márcalos como comprados, renómbralos o vacía la lista.</span></p>
+          </div>
+          <div class="card reveal"><div class="ico">📅</div>
+            <h3><span data-lang-en>Meal planner</span><span data-lang-es>Planificador</span></h3>
+            <p><span data-lang-en>Read a week of the calendar and schedule recipes — standard or custom — on any day.</span><span data-lang-es>Lee una semana del calendario y planifica recetas — estándar o personalizadas — en cualquier día.</span></p>
+          </div>
+          <div class="card reveal"><div class="ico">📒</div>
+            <h3><span data-lang-en>Custom recipes</span><span data-lang-es>Recetas propias</span></h3>
+            <p><span data-lang-en>List, read, create and delete your own recipes derived from existing ones.</span><span data-lang-es>Lista, consulta, crea y elimina tus propias recetas derivadas de otras existentes.</span></p>
+          </div>
+          <div class="card reveal"><div class="ico">📚</div>
+            <h3><span data-lang-en>Collections</span><span data-lang-es>Colecciones</span></h3>
+            <p><span data-lang-en>Browse and manage both managed (subscribed) and custom collections, paged.</span><span data-lang-es>Explora y gestiona colecciones gestionadas (suscritas) y propias, paginadas.</span></p>
+          </div>
+          <div class="card reveal"><div class="ico">🔐</div>
+            <h3><span data-lang-en>Lazy, self-healing auth</span><span data-lang-es>Auth perezosa y auto-reparable</span></h3>
+            <p><span data-lang-en>Logs in via the Cookidoo OAuth2 cookie flow, re-authenticates on a 401, with optional session persistence.</span><span data-lang-es>Inicia sesión por el flujo OAuth2 de Cookidoo, se reautentica ante un 401, con persistencia de sesión opcional.</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section class="block" id="architecture">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="eyebrow"><span data-lang-en>Under the hood</span><span data-lang-es>Por dentro</span></div>
+          <h2><span data-lang-en>Clean architecture, by design.</span><span data-lang-es>Arquitectura limpia, por diseño.</span></h2>
+          <p>
+            <span data-lang-en>Built with NestJS following a DDD + CQRS + Hexagonal layout. Tools never touch the HTTP client directly — they dispatch Commands and Queries through a bus.</span>
+            <span data-lang-es>Hecho con NestJS siguiendo un diseño DDD + CQRS + Hexagonal. Las herramientas nunca tocan el cliente HTTP directamente — despachan Comandos y Consultas por un bus.</span>
+          </p>
+        </div>
+        <div class="arch-grid">
+          <ul class="arch-list reveal">
+            <li><span class="pill">1</span><div>
+              <h4><span data-lang-en>Transport</span><span data-lang-es>Transporte</span></h4>
+              <p><span data-lang-en>Stateless Streamable HTTP at <code>POST /api/mcp</code>. A fresh <code>McpServer</code> is built per request; <code>GET</code>/<code>DELETE</code> return <code>405</code>.</span><span data-lang-es>Streamable HTTP sin estado en <code>POST /api/mcp</code>. Se construye un <code>McpServer</code> nuevo por petición; <code>GET</code>/<code>DELETE</code> devuelven <code>405</code>.</span></p>
+            </div></li>
+            <li><span class="pill">2</span><div>
+              <h4><span data-lang-en>Tools layer</span><span data-lang-es>Capa de herramientas</span></h4>
+              <p><span data-lang-en>Each tool has a Zod input schema and only dispatches a Command or Query — never calls the client.</span><span data-lang-es>Cada herramienta tiene un esquema de entrada Zod y solo despacha un Comando o Consulta — nunca llama al cliente.</span></p>
+            </div></li>
+            <li><span class="pill">3</span><div>
+              <h4><span data-lang-en>Application (CQRS)</span><span data-lang-es>Aplicación (CQRS)</span></h4>
+              <p><span data-lang-en>Commands and Queries with handlers that talk to the <code>ICookidooClient</code> port.</span><span data-lang-es>Comandos y Consultas con manejadores que hablan con el puerto <code>ICookidooClient</code>.</span></p>
+            </div></li>
+            <li><span class="pill">4</span><div>
+              <h4><span data-lang-en>Infrastructure</span><span data-lang-es>Infraestructura</span></h4>
+              <p><span data-lang-en><code>CookidooHttpClient</code> — a singleton behind the port — implements the TS rewrite of cookidoo-api with lazy OAuth2 login.</span><span data-lang-es><code>CookidooHttpClient</code> — un singleton tras el puerto — implementa la reescritura TS de cookidoo-api con login OAuth2 perezoso.</span></p>
+            </div></li>
+          </ul>
+          <div class="code reveal">
+            <div class="code-head"><div class="dots"><i></i><i></i><i></i></div><span class="file">src/</span></div>
+<pre><span class="c-com"># DDD + CQRS + Hexagonal</span>
+src/
+  core/
+    <span class="c-key">config/</span>      <span class="c-com"># env validation + creds</span>
+    <span class="c-key">mcp/</span>         <span class="c-com"># Streamable HTTP transport</span>
+  contexts/
+    cookidoo/
+      <span class="c-key">domain/</span>          <span class="c-com"># types, ICookidooClient port</span>
+      <span class="c-key">application/</span>     <span class="c-com"># CQRS commands &amp; queries</span>
+      <span class="c-key">infrastructure/</span>  <span class="c-com"># CookidooHttpClient</span>
+      <span class="c-key">transport/mcp/</span>   <span class="c-com"># tools + Zod schemas</span>
+  app.module.ts
+  main.ts</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUICKSTART -->
+    <section class="block" id="quickstart">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="eyebrow"><span data-lang-en>Quickstart</span><span data-lang-es>Inicio rápido</span></div>
+          <h2><span data-lang-en>Up and running in minutes.</span><span data-lang-es>Funcionando en minutos.</span></h2>
+          <p><span data-lang-en>Run it locally with pnpm, or as a container with Docker. Requires Node and a Cookidoo account.</span><span data-lang-es>Ejecútalo localmente con pnpm, o como contenedor con Docker. Requiere Node y una cuenta de Cookidoo.</span></p>
+        </div>
+        <div class="steps">
+          <div class="step reveal"><div class="n">1</div><div class="body">
+            <h4><span data-lang-en>Install &amp; configure credentials</span><span data-lang-es>Instala y configura las credenciales</span></h4>
+            <div class="code"><div class="code-head"><div class="dots"><i></i><i></i><i></i></div><span class="file">bash</span></div>
+<pre>pnpm install
+cp .env.example .env   <span class="c-com"># then fill in your credentials</span></pre></div>
+          </div></div>
+          <div class="step reveal"><div class="n">2</div><div class="body">
+            <h4><span data-lang-en>Run in watch mode (or production)</span><span data-lang-es>Ejecuta en modo watch (o producción)</span></h4>
+            <div class="code"><div class="code-head"><div class="dots"><i></i><i></i><i></i></div><span class="file">bash</span></div>
+<pre>pnpm dev               <span class="c-com"># watch mode</span>
+<span class="c-com"># or</span>
+pnpm build &amp;&amp; pnpm prod</pre></div>
+          </div></div>
+          <div class="step reveal"><div class="n">3</div><div class="body">
+            <h4><span data-lang-en>Or run it with Docker</span><span data-lang-es>O ejecútalo con Docker</span></h4>
+            <div class="code"><div class="code-head"><div class="dots"><i></i><i></i><i></i></div><span class="file">bash</span></div>
+<pre>docker build -t cookidoo-mcp .
+docker run --rm -p 3000:3000 --env-file .env cookidoo-mcp</pre></div>
+          </div></div>
+          <div class="step reveal"><div class="n">4</div><div class="body">
+            <h4><span data-lang-en>Point your MCP client at it</span><span data-lang-es>Apunta tu cliente MCP</span></h4>
+            <div class="code"><div class="code-head"><div class="dots"><i></i><i></i><i></i></div><span class="file">endpoint</span></div>
+<pre><span class="c-key">POST</span> http://localhost:3000<span class="c-str">/api/mcp</span>   <span class="c-com"># Streamable HTTP (stateless)</span></pre></div>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIG -->
+    <section class="block" id="config">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="eyebrow"><span data-lang-en>Configuration</span><span data-lang-es>Configuración</span></div>
+          <h2><span data-lang-en>Configured by environment.</span><span data-lang-es>Configurado por entorno.</span></h2>
+          <p><span data-lang-en>Credentials and localization come from environment variables. See <code>.env.example</code> in the repo.</span><span data-lang-es>Las credenciales y la localización vienen de variables de entorno. Mira <code>.env.example</code> en el repo.</span></p>
+        </div>
+        <div class="table-wrap reveal">
+          <table>
+            <thead><tr>
+              <th><span data-lang-en>Variable</span><span data-lang-es>Variable</span></th>
+              <th><span data-lang-en>Required</span><span data-lang-es>Obligatoria</span></th>
+              <th><span data-lang-en>Default</span><span data-lang-es>Por defecto</span></th>
+              <th><span data-lang-en>Description</span><span data-lang-es>Descripción</span></th>
+            </tr></thead>
+            <tbody>
+              <tr><td><code>COOKIDOO_EMAIL</code></td><td class="req-yes"><span data-lang-en>yes</span><span data-lang-es>sí</span></td><td>—</td><td><span data-lang-en>Cookidoo account email</span><span data-lang-es>Email de la cuenta de Cookidoo</span></td></tr>
+              <tr><td><code>COOKIDOO_PASSWORD</code></td><td class="req-yes"><span data-lang-en>yes</span><span data-lang-es>sí</span></td><td>—</td><td><span data-lang-en>Cookidoo account password</span><span data-lang-es>Contraseña de la cuenta de Cookidoo</span></td></tr>
+              <tr><td><code>COOKIDOO_COUNTRY_CODE</code></td><td class="req-no"><span data-lang-en>no</span><span data-lang-es>no</span></td><td><code>es</code></td><td><span data-lang-en>Localization country code</span><span data-lang-es>Código de país de localización</span></td></tr>
+              <tr><td><code>COOKIDOO_LANGUAGE</code></td><td class="req-no"><span data-lang-en>no</span><span data-lang-es>no</span></td><td><code>es-ES</code></td><td><span data-lang-en>Localization language</span><span data-lang-es>Idioma de localización</span></td></tr>
+              <tr><td><code>COOKIDOO_URL</code></td><td class="req-no"><span data-lang-en>no</span><span data-lang-es>no</span></td><td><code>cookidoo.es/…</code></td><td><span data-lang-en>Localization base URL</span><span data-lang-es>URL base de localización</span></td></tr>
+              <tr><td><code>COOKIDOO_COOKIE_FILE</code></td><td class="req-no"><span data-lang-en>no</span><span data-lang-es>no</span></td><td>—</td><td><span data-lang-en>Path to persist the session across restarts</span><span data-lang-es>Ruta para persistir la sesión entre reinicios</span></td></tr>
+              <tr><td><code>PORT</code></td><td class="req-no"><span data-lang-en>no</span><span data-lang-es>no</span></td><td><code>3000</code></td><td><span data-lang-en>HTTP port</span><span data-lang-es>Puerto HTTP</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note reveal">
+          <span class="ni">🔒</span>
+          <div>
+            <span data-lang-en>By default the session lives only in memory. Set <b><code>COOKIDOO_COOKIE_FILE</code></b> to a writable path to restore and rewrite the session across restarts — an expired one self-heals on the next <code>401</code>. The file holds session cookies: <b>treat it like a credential</b> and keep it out of version control.</span>
+            <span data-lang-es>Por defecto la sesión vive solo en memoria. Define <b><code>COOKIDOO_COOKIE_FILE</code></b> con una ruta escribible para restaurar y reescribir la sesión entre reinicios — una caducada se auto-repara en el siguiente <code>401</code>. El archivo guarda cookies de sesión: <b>trátalo como una credencial</b> y mantenlo fuera del control de versiones.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TOOLS -->
+    <section class="block" id="tools">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="eyebrow"><span data-lang-en>Reference</span><span data-lang-es>Referencia</span></div>
+          <h2><span data-lang-en>36 MCP tools, fully typed.</span><span data-lang-es>36 herramientas MCP, totalmente tipadas.</span></h2>
+          <p><span data-lang-en>Every tool dispatches a Command or Query through the CQRS bus. Filter by domain below.</span><span data-lang-es>Cada herramienta despacha un Comando o Consulta por el bus CQRS. Filtra por dominio abajo.</span></p>
+        </div>
+
+        <div class="tool-filters reveal" id="toolFilters"></div>
+        <div class="tool-groups" id="toolGroups"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <div class="left">
+        <span class="logo">🍲</span>
+        <span><code style="font-family:var(--mono)">cookidoo-mcp</code> · © <span id="year"></span> Sisques Labs</span>
+      </div>
+      <div class="right">
+        <a href="https://github.com/sisques-labs/cookidoo-mcp" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP</a>
+        <a href="https://github.com/miaucl/cookidoo-api" target="_blank" rel="noopener">cookidoo-api</a>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:18px;color:var(--text-faint);font-size:12.5px;">
+      <span data-lang-en>Unofficial project. Not affiliated with or endorsed by Vorwerk / Cookidoo.</span>
+      <span data-lang-es>Proyecto no oficial. Sin afiliación ni respaldo de Vorwerk / Cookidoo.</span>
+    </div>
+  </footer>
+
+  <script>
+    /* ---------- Theme ---------- */
+    (function () {
+      const root = document.documentElement;
+      const saved = localStorage.getItem('cmcp-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      root.setAttribute('data-theme', theme);
+      syncThemeIcon(theme);
+
+      document.getElementById('themeBtn').addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('cmcp-theme', next);
+        syncThemeIcon(next);
+      });
+      function syncThemeIcon(t) {
+        document.getElementById('iconSun').style.display = t === 'dark' ? 'block' : 'none';
+        document.getElementById('iconMoon').style.display = t === 'dark' ? 'none' : 'block';
+      }
+    })();
+
+    /* ---------- Language ---------- */
+    (function () {
+      const root = document.documentElement;
+      const saved = localStorage.getItem('cmcp-lang');
+      const lang = saved || (navigator.language && navigator.language.startsWith('es') ? 'es' : 'en');
+      setLang(lang);
+
+      document.getElementById('langBtn').addEventListener('click', () => {
+        setLang(root.getAttribute('lang') === 'es' ? 'en' : 'es');
+      });
+      function setLang(l) {
+        root.setAttribute('lang', l);
+        localStorage.setItem('cmcp-lang', l);
+        document.getElementById('langLabel').textContent = l === 'es' ? 'EN' : 'ES';
+      }
+    })();
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* ---------- Tools data ---------- */
+    const GROUPS = [
+      { id: 'account', emoji: '👤', en: 'Account & subscription', es: 'Cuenta y suscripción',
+        gen: 'Read the account profile and active subscription.', ges: 'Lee el perfil de la cuenta y la suscripción activa.', tools: [
+        ['cookidoo_get_user_info','query','Account public profile','Perfil público de la cuenta'],
+        ['cookidoo_get_active_subscription','query','Active subscription (or null)','Suscripción activa (o null)'],
+      ]},
+      { id: 'recipes', emoji: '🔎', en: 'Recipe search', es: 'Búsqueda de recetas',
+        gen: 'Search the catalogue and read recipe details.', ges: 'Busca en el catálogo y lee los detalles de recetas.', tools: [
+        ['cookidoo_search_recipes','query','Search the recipe catalogue with filters','Busca el catálogo de recetas con filtros'],
+        ['cookidoo_get_recipe_details','query','Full details of a recipe by id','Detalles completos de una receta por id'],
+      ]},
+      { id: 'shopping', emoji: '🛒', en: 'Shopping list', es: 'Lista de la compra',
+        gen: 'Read, edit, mark and clear shopping-list items.', ges: 'Lee, edita, marca y vacía artículos de la lista.', tools: [
+        ['cookidoo_get_shopping_list_recipes','query','Recipes on the shopping list','Recetas en la lista de la compra'],
+        ['cookidoo_get_ingredient_items','query','Ingredient items on the shopping list','Ingredientes en la lista de la compra'],
+        ['cookidoo_get_additional_items','query','Free-text items on the shopping list','Artículos de texto libre en la lista'],
+        ['cookidoo_add_recipe_ingredients','command',"Add recipes' ingredients to the list","Añade ingredientes de recetas a la lista"],
+        ['cookidoo_remove_recipe_ingredients','command',"Remove recipes' ingredients from the list","Quita ingredientes de recetas de la lista"],
+        ['cookidoo_add_additional_items','command','Add free-text items to the list','Añade artículos de texto libre a la lista'],
+        ['cookidoo_remove_additional_items','command','Remove free-text items from the list','Quita artículos de texto libre de la lista'],
+        ['cookidoo_clear_shopping_list','command','Empty the shopping list','Vacía la lista de la compra'],
+        ['cookidoo_mark_ingredient_items','command','Mark ingredient items as bought/owned','Marca ingredientes como comprados/en posesión'],
+        ['cookidoo_mark_additional_items','command','Mark free-text items as bought/owned','Marca artículos libres como comprados/en posesión'],
+        ['cookidoo_edit_additional_items','command','Rename free-text items','Renombra artículos de texto libre'],
+        ['cookidoo_add_custom_recipe_ingredients','command',"Add custom recipes' ingredients to the list","Añade ingredientes de recetas propias a la lista"],
+        ['cookidoo_remove_custom_recipe_ingredients','command',"Remove custom recipes' ingredients from the list","Quita ingredientes de recetas propias de la lista"],
+      ]},
+      { id: 'calendar', emoji: '📅', en: 'Meal planner', es: 'Planificador de menús',
+        gen: 'Read a week and schedule recipes on the calendar.', ges: 'Lee una semana y planifica recetas en el calendario.', tools: [
+        ['cookidoo_get_calendar_week','query','Recipes planned on the calendar for a week','Recetas planificadas en el calendario para una semana'],
+        ['cookidoo_add_recipes_to_calendar','command','Add recipes to the calendar on a day','Añade recetas al calendario en un día'],
+        ['cookidoo_remove_recipe_from_calendar','command','Remove a recipe from the calendar on a day','Quita una receta del calendario en un día'],
+        ['cookidoo_add_custom_recipes_to_calendar','command','Add custom recipes to the calendar on a day','Añade recetas propias al calendario en un día'],
+        ['cookidoo_remove_custom_recipe_from_calendar','command','Remove a custom recipe from the calendar on a day','Quita una receta propia del calendario en un día'],
+      ]},
+      { id: 'custom', emoji: '📒', en: 'Custom recipes', es: 'Recetas propias',
+        gen: 'List, read, create and delete your own recipes.', ges: 'Lista, consulta, crea y elimina tus propias recetas.', tools: [
+        ['cookidoo_list_custom_recipes','query','All user-created (custom) recipes','Todas las recetas creadas por el usuario'],
+        ['cookidoo_get_custom_recipe','query','Full details of a custom recipe by id','Detalles completos de una receta propia por id'],
+        ['cookidoo_add_custom_recipe','command','Create a custom recipe from an existing recipe','Crea una receta propia a partir de una existente'],
+        ['cookidoo_remove_custom_recipe','command','Delete a custom recipe','Elimina una receta propia'],
+      ]},
+      { id: 'collections', emoji: '📚', en: 'Collections', es: 'Colecciones',
+        gen: 'Manage managed (subscribed) and custom collections.', ges: 'Gestiona colecciones gestionadas (suscritas) y propias.', tools: [
+        ['cookidoo_count_managed_collections','query','Total managed collections / pages','Total de colecciones gestionadas / páginas'],
+        ['cookidoo_get_managed_collections','query','A page of managed collections','Una página de colecciones gestionadas'],
+        ['cookidoo_add_managed_collection','command','Subscribe to a managed collection','Suscríbete a una colección gestionada'],
+        ['cookidoo_remove_managed_collection','command','Unsubscribe from a managed collection','Cancela la suscripción a una colección gestionada'],
+        ['cookidoo_count_custom_collections','query','Total custom collections / pages','Total de colecciones propias / páginas'],
+        ['cookidoo_get_custom_collections','query','A page of custom collections','Una página de colecciones propias'],
+        ['cookidoo_add_custom_collection','command','Create a custom collection','Crea una colección propia'],
+        ['cookidoo_remove_custom_collection','command','Delete a custom collection','Elimina una colección propia'],
+        ['cookidoo_add_recipes_to_custom_collection','command','Add recipes to a custom collection','Añade recetas a una colección propia'],
+        ['cookidoo_remove_recipe_from_custom_collection','command','Remove a recipe from a custom collection','Quita una receta de una colección propia'],
+      ]},
+    ];
+
+    const root = document.documentElement;
+    const filtersEl = document.getElementById('toolFilters');
+    const groupsEl = document.getElementById('toolGroups');
+    let activeFilter = 'all';
+
+    function tLabel(en, es) { return root.getAttribute('lang') === 'es' ? es : en; }
+
+    function renderFilters() {
+      const all = root.getAttribute('lang') === 'es' ? 'Todas' : 'All';
+      let html = `<button class="chip ${activeFilter==='all'?'active':''}" data-f="all">${all}</button>`;
+      GROUPS.forEach(g => {
+        html += `<button class="chip ${activeFilter===g.id?'active':''}" data-f="${g.id}">${g.emoji} ${tLabel(g.en, g.es)}</button>`;
+      });
+      filtersEl.innerHTML = html;
+      filtersEl.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+        activeFilter = c.getAttribute('data-f'); renderFilters(); renderGroups();
+      }));
+    }
+
+    function renderGroups() {
+      const cmd = root.getAttribute('lang') === 'es';
+      groupsEl.innerHTML = GROUPS.filter(g => activeFilter === 'all' || activeFilter === g.id).map(g => {
+        const tools = g.tools.map(t => {
+          const [name, kind, en, es] = t;
+          return `<div class="tool">
+            <span class="tag ${kind}">${kind}</span>
+            <div class="meta"><div class="tname">${name}</div><div class="tdesc">${tLabel(en, es)}</div></div>
+          </div>`;
+        }).join('');
+        return `<div class="tool-group">
+          <h3><span class="emoji">${g.emoji}</span>${tLabel(g.en, g.es)}</h3>
+          <div class="gdesc">${tLabel(g.gen, g.ges)}</div>
+          <div class="tool-list">${tools}</div>
+        </div>`;
+      }).join('');
+    }
+
+    renderFilters();
+    renderGroups();
+
+    // re-render tools text on language switch
+    document.getElementById('langBtn').addEventListener('click', () => { renderFilters(); renderGroups(); });
+
+    /* ---------- Reveal on scroll ---------- */
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  </script>
+</body>
+</html>
