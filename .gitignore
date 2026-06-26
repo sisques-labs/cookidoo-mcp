@@ -1,0 +1,30 @@
+# compiled output
+/dist
+/node_modules
+/build
+
+# logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea
+.vscode/*
+!.vscode/extensions.json
+
+# tests
+/coverage
+
+# misc
+.DS_Store
+*.tsbuildinfo
+
+# cookidoo session cookies (never commit a real session)
+cookies.json
