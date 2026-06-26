@@ -23,6 +23,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "login:check": "ts-node -r tsconfig-paths/register scripts/login-check.ts",
     "prepare": "node -e \"if(process.env.HUSKY!=='0')require('child_process').execSync('husky',{stdio:'inherit'})\""
   },
   "dependencies": {
