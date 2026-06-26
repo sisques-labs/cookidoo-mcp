@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build cookidoo-mcp
+    runs-on: ubuntu-latest
+
+    env:
+      COOKIDOO_EMAIL: ci@example.com
+      COOKIDOO_PASSWORD: ci-password
+
+    steps:
+      - name: Setup
+        uses: sisques-labs/workflows/.github/actions/setup@main
+        with:
+          node_version: "22"
+
+      - name: Install dependencies
+        uses: sisques-labs/workflows/.github/actions/install@main
+        with:
+          app_path: "."
+          frozen_lockfile: "true"
+
+      - name: Lint code
+        run: pnpm lint
+
+      - name: Run unit tests
+        run: pnpm test
+
+      - name: Run e2e tests
+        run: pnpm test:e2e
+
+      - name: Build the app
+        run: pnpm build
