@@ -452,32 +452,30 @@ export class CookidooHttpClient implements ICookidooClient {
       collected.length > 0
         ? collected.map((cookie) => `${cookie.key}@${cookie.domain}`).join(', ')
         : '(none)';
-
     const postStatus = postResponse.status;
     const contentType = String(postResponse.headers['content-type'] ?? '');
-    const cfMitigated = postResponse.headers['cf-mitigated'];
-    const bodySnippet =
-      typeof postResponse.data === 'string'
-        ? postResponse.data.replace(/\s+/g, ' ').slice(0, 600)
-        : JSON.stringify(postResponse.data).slice(0, 600);
 
-    // The credentials POST diagnostics are the key signal: an error message
-    // points at the credentials, a `<form>`/redirect URL at an extra OAuth hop
-    // we must follow, and a Cloudflare challenge at bot protection.
     this.logger.warn(
-      `Login verification failed. POST status=${postStatus} ` +
-        `content-type=${contentType} cf-mitigated=${cfMitigated ?? '-'} ` +
-        `cookies=[${summary}]`,
+      `Login verification failed: missing [${missing.join(', ')}]. ` +
+        `POST status=${postStatus} content-type=${contentType} cookies=[${summary}]. ` +
+        'Set COOKIDOO_DEBUG=true to trace the login flow.',
     );
-    this.logger.warn(`Login form: ${loginForm}`);
-    this.logger.warn(`Credentials POST body (first 600 chars): ${bodySnippet}`);
+
+    if (this.debug) {
+      const bodySnippet =
+        typeof postResponse.data === 'string'
+          ? postResponse.data.replace(/\s+/g, ' ').slice(0, 600)
+          : JSON.stringify(postResponse.data).slice(0, 600);
+      this.logger.debug(`Login form: ${loginForm}`);
+      this.logger.debug(
+        `Credentials POST body (first 600 chars): ${bodySnippet}`,
+      );
+    }
 
     throw new CookidooAuthException(
       `Login failed: missing session cookies [${missing.join(', ')}] ` +
-        `(credentials POST returned ${postStatus}, content-type ${contentType || 'n/a'}). ` +
-        `Login form ${loginForm}. ` +
-        `Cookies collected: ${summary}. ` +
-        `POST body starts with: ${bodySnippet.slice(0, 200)}`,
+        `(credentials POST returned ${postStatus}). ` +
+        'Set COOKIDOO_DEBUG=true to trace the login flow.',
     );
   }
 
