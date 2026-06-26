@@ -61,6 +61,14 @@ const BROWSER_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
+// The OAuth2 login flow must look like a browser navigation: requesting JSON
+// from the login/authorize endpoints makes them answer 401 instead of serving
+// the HTML login form. Mirrors the upstream library, which sends no
+// `Accept: application/json` on the login requests.
+const BROWSER_ACCEPT =
+  'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,' +
+  'image/webp,*/*;q=0.8';
+
 interface RequestOptions {
   params?: Record<string, string>;
   data?: unknown;
@@ -98,8 +106,9 @@ export class CookidooHttpClient implements ICookidooClient {
         withCredentials: true,
         maxRedirects: 30,
         timeout: 30_000,
+        // Only the User-Agent is global. The JSON `Accept` is added per API
+        // request (see `dispatch`), never on the browser-style login flow.
         headers: {
-          ...DEFAULT_API_HEADERS,
           'User-Agent': BROWSER_USER_AGENT,
         },
         // Inspect every status manually so we can map 401 -> auth error.
@@ -157,6 +166,7 @@ export class CookidooHttpClient implements ICookidooClient {
     try {
       const resp = await this.http.get<string>(loginUrl, {
         responseType: 'text',
+        headers: { Accept: BROWSER_ACCEPT },
       });
       if (resp.status !== 200) {
         throw new CookidooAuthException(
@@ -178,6 +188,7 @@ export class CookidooHttpClient implements ICookidooClient {
           username: this.config.email,
           password: this.config.password,
         }),
+        { headers: { Accept: BROWSER_ACCEPT } },
       );
     } catch (error) {
       throw this.wrapNetworkError(error, 'submit credentials');
@@ -275,7 +286,9 @@ export class CookidooHttpClient implements ICookidooClient {
         url,
         params: options.params,
         data: options.data,
-        headers: options.headers,
+        // API calls negotiate JSON; the login flow (which bypasses this helper)
+        // keeps its browser-style Accept header instead.
+        headers: { ...DEFAULT_API_HEADERS, ...options.headers },
       });
     } catch (error) {
       throw this.wrapNetworkError(error, 'request Cookidoo');
