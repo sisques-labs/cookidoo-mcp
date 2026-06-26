@@ -9,7 +9,7 @@
   },
   "homepage": "https://github.com/sisques-labs/cookidoo-mcp",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "GPL-3.0-or-later",
   "packageManager": "pnpm@10.33.0",
   "scripts": {
     "build": "nest build",

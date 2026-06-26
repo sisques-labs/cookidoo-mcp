@@ -50,6 +50,7 @@ Credentials and localization come from environment variables (see
 | `COOKIDOO_LANGUAGE` | no | `es-ES` | Localization language |
 | `COOKIDOO_URL` | no | `https://cookidoo.es/foundation/es-ES` | Localization base URL |
 | `COOKIDOO_COOKIE_FILE` | no | — | Path to persist the session across restarts (see below) |
+| `COOKIDOO_DEBUG` | no | `false` | Set to `true` to log the full OAuth2 login flow (each redirect hop and `Set-Cookie` outcome) when debugging authentication |
 | `PORT` | no | `3000` | HTTP port |
 
 ### Session persistence
@@ -102,7 +103,8 @@ If you set a custom `PORT`, map the same port on the host and in the container
 (e.g. `-p 3010:3010` when `PORT=3010`).
 
 The MCP endpoint is then available at `http://localhost:3000/api/mcp` (or your
-custom port).
+custom port). A liveness probe is exposed at `GET /api/health` (handy for
+Docker/orchestrator health checks).
 
 ## Cursor
 
@@ -178,4 +180,4 @@ calendar, custom recipes, collections (managed/custom) and session persistence
 
 ## License
 
-UNLICENSED — © Sisques Labs.
+Licensed under the [GNU General Public License v3.0](LICENSE) — © Sisques Labs.
