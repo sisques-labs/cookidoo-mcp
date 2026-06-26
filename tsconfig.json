@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "ES2022",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "resolveJsonModule": true,
+    "paths": {
+      "@core/*": ["src/core/*"],
+      "@contexts/*": ["src/contexts/*"],
+      "@shared/*": ["src/shared/*"],
+      "@modelcontextprotocol/sdk/server/mcp.js": [
+        "node_modules/@modelcontextprotocol/sdk/dist/cjs/server/mcp"
+      ],
+      "@modelcontextprotocol/sdk/server/streamableHttp.js": [
+        "node_modules/@modelcontextprotocol/sdk/dist/cjs/server/streamableHttp"
+      ],
+      "@modelcontextprotocol/sdk/types.js": [
+        "node_modules/@modelcontextprotocol/sdk/dist/cjs/types"
+      ]
+    }
+  }
+}
