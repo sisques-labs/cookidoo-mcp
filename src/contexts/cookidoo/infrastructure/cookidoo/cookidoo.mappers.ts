@@ -15,6 +15,15 @@ import {
   CookidooIngredientItem,
 } from '../../domain/types/cookidoo-shopping-list.type';
 import {
+  CookidooCalendarDay,
+  CookidooCalendarDayRecipe,
+} from '../../domain/types/cookidoo-calendar.type';
+import { CookidooCustomRecipe } from '../../domain/types/cookidoo-custom-recipe.type';
+import {
+  CookidooChapter,
+  CookidooCollection,
+} from '../../domain/types/cookidoo-collection.type';
+import {
   IMAGE_TRANSFORMATION,
   THUMBNAIL_TRANSFORMATION,
 } from './cookidoo.constants';
@@ -33,7 +42,7 @@ export function constructRecipeUrl(
 }
 
 /** Replace the `{transformation}` placeholder to get (thumbnail, image) URLs. */
-function processImageUrl(url: string): [string, string] {
+export function processImageUrl(url: string): [string, string] {
   return [
     url.replace('{transformation}', THUMBNAIL_TRANSFORMATION),
     url.replace('{transformation}', IMAGE_TRANSFORMATION),
@@ -187,6 +196,139 @@ export function recipeDetailsFromJson(
     thumbnail,
     image,
     url: constructRecipeUrl(localization, recipe.id),
+  };
+}
+
+/** Map a single recipe planned on a calendar day. */
+export function calendarDayRecipeFromJson(
+  recipe: Json,
+  localization: CookidooLocalization,
+): CookidooCalendarDayRecipe {
+  const images = recipe.assets?.images;
+  const [thumbnail, image] = extractImages(images ? [images] : undefined);
+  const totalTime =
+    recipe.totalTime === undefined || recipe.totalTime === null
+      ? null
+      : Number(recipe.totalTime);
+  return {
+    id: recipe.id,
+    name: recipe.title,
+    totalTime,
+    thumbnail,
+    image,
+    url: constructRecipeUrl(localization, recipe.id),
+  };
+}
+
+/** Map a single day of the meal-planner calendar, merging custom recipes. */
+export function calendarDayFromJson(
+  day: Json,
+  localization: CookidooLocalization,
+): CookidooCalendarDay {
+  const recipes: Json[] = day.recipes ?? [];
+  const customerRecipes: Json[] = day.customerRecipes ?? [];
+  return {
+    id: day.id,
+    title: day.title,
+    recipes: [...recipes, ...customerRecipes].map((recipe) =>
+      calendarDayRecipeFromJson(recipe, localization),
+    ),
+    customerRecipeIds: Array.isArray(day.customerRecipeIds)
+      ? day.customerRecipeIds
+      : [],
+  };
+}
+
+/**
+ * Convert a duration to whole seconds. Accepts a number (already seconds) or an
+ * ISO-8601 duration string such as `PT1H30M`; anything else yields 0.
+ */
+export function durationToSeconds(value: unknown): number {
+  if (value === null || value === undefined) {
+    return 0;
+  }
+  if (typeof value === 'number') {
+    return Math.trunc(value);
+  }
+  if (typeof value !== 'string') {
+    return 0;
+  }
+  const match =
+    /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/.exec(
+      value.trim(),
+    );
+  if (!match) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? Math.trunc(numeric) : 0;
+  }
+  const [, days, hours, minutes, seconds] = match;
+  return Math.trunc(
+    (Number(days ?? 0) * 24 + Number(hours ?? 0)) * 3600 +
+      Number(minutes ?? 0) * 60 +
+      Number(seconds ?? 0),
+  );
+}
+
+/** Normalise a recipe-content list whose entries may be strings or `{text}`. */
+function extractTextList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) =>
+      typeof item === 'string' ? item : ((item as Json)?.text ?? null),
+    )
+    .filter((text): text is string => typeof text === 'string');
+}
+
+export function customRecipeFromJson(
+  recipe: Json,
+  localization: CookidooLocalization,
+): CookidooCustomRecipe {
+  const content: Json = recipe.recipeContent ?? {};
+  let thumbnail: string | null = null;
+  let image: string | null = null;
+  if (content.image) {
+    [thumbnail, image] = processImageUrl(String(content.image));
+  }
+  const recipeYield: Json = content.recipeYield ??
+    content.yield ?? { value: 0, unitText: '' };
+
+  return {
+    id: recipe.recipeId,
+    name: content.name,
+    ingredients: extractTextList(
+      content.recipeIngredient ?? content.ingredients,
+    ),
+    instructions: extractTextList(
+      content.recipeInstructions ?? content.instructions,
+    ),
+    servingSize: recipeYield.value ?? 0,
+    totalTime: durationToSeconds(content.totalTime),
+    activeTime: durationToSeconds(content.prepTime),
+    tools: extractTextList(content.tool ?? content.tools),
+    thumbnail,
+    image,
+    url: constructRecipeUrl(localization, recipe.recipeId, 'created-recipes'),
+  };
+}
+
+export function collectionFromJson(collection: Json): CookidooCollection {
+  const chapters: Json[] = collection.chapters ?? [];
+  return {
+    id: collection.id,
+    name: collection.title,
+    description: collection.description ?? null,
+    chapters: chapters.map(
+      (chapter): CookidooChapter => ({
+        name: chapter.title,
+        recipes: (chapter.recipes ?? []).map((recipe: Json) => ({
+          id: recipe.id,
+          name: recipe.title,
+          totalTime: Math.trunc(Number(recipe.totalTime ?? 0)),
+        })),
+      }),
+    ),
   };
 }
 
