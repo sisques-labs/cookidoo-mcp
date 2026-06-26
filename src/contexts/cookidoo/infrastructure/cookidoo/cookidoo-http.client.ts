@@ -372,9 +372,31 @@ export class CookidooHttpClient implements ICookidooClient {
       throw this.wrapNetworkError(error, 'submit credentials');
     }
 
+    // cidaas reports invalid credentials by redirecting back to the login page
+    // with an `error` query param — surface that as a clear auth error.
+    this.assertNoLoginError(postResponse);
     await this.verifyAuthCookies(postResponse, loginForm);
     this.loggedIn = true;
     this.logger.log('Cookidoo login successful');
+  }
+
+  private assertNoLoginError(postResponse: AxiosResponse): void {
+    const finalUrl = (postResponse as AxiosResponse & { finalUrl?: string })
+      .finalUrl;
+    if (!finalUrl) {
+      return;
+    }
+    const params = new URL(finalUrl).searchParams;
+    const error = params.get('error');
+    if (!error) {
+      return;
+    }
+    const description = params.get('error_description') ?? '';
+    throw new CookidooAuthException(
+      `Cookidoo rejected the login (${error})` +
+        (description ? `: ${description}` : '') +
+        '. Check COOKIDOO_EMAIL and COOKIDOO_PASSWORD.',
+    );
   }
 
   private extractRequestId(html: string): string {
