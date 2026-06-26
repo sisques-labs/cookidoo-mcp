@@ -306,22 +306,7 @@ export class CookidooHttpClient implements ICookidooClient {
     }
 
     const requestId = this.extractRequestId(loginHtml);
-
-    if (this.debug) {
-      const fields = [
-        ...new Set(
-          [...loginHtml.matchAll(/<input[^>]*name=["']([^"']+)["']/gi)].map(
-            (match) => match[1],
-          ),
-        ),
-      ];
-      const formAction = /<form[^>]*action=["']([^"']+)["']/i.exec(
-        loginHtml,
-      )?.[1];
-      this.logger.debug(
-        `Login form action=${formAction ?? '-'} fields=[${fields.join(', ')}]`,
-      );
-    }
+    const loginForm = this.describeLoginForm(loginHtml);
 
     let postResponse: AxiosResponse;
     try {
@@ -342,7 +327,7 @@ export class CookidooHttpClient implements ICookidooClient {
       throw this.wrapNetworkError(error, 'submit credentials');
     }
 
-    await this.verifyAuthCookies(postResponse);
+    await this.verifyAuthCookies(postResponse, loginForm);
     this.loggedIn = true;
     this.logger.log('Cookidoo login successful');
   }
@@ -363,7 +348,25 @@ export class CookidooHttpClient implements ICookidooClient {
     return match[1];
   }
 
-  private async verifyAuthCookies(postResponse: AxiosResponse): Promise<void> {
+  /** Summarise the login form (action + input name(type)) for diagnostics. */
+  private describeLoginForm(html: string): string {
+    const action = /<form[^>]*action=["']([^"']+)["']/i.exec(html)?.[1] ?? '-';
+    const inputs = [...html.matchAll(/<input\b[^>]*>/gi)].map((match) => {
+      const tag = match[0];
+      const name = /name=["']([^"']+)["']/i.exec(tag)?.[1];
+      const type = /type=["']([^"']+)["']/i.exec(tag)?.[1] ?? 'text';
+      return name ? `${name}(${type})` : null;
+    });
+    const fields = [
+      ...new Set(inputs.filter((field): field is string => !!field)),
+    ];
+    return `action=${action} fields=[${fields.join(', ')}]`;
+  }
+
+  private async verifyAuthCookies(
+    postResponse: AxiosResponse,
+    loginForm: string,
+  ): Promise<void> {
     // Like the upstream library, check every cookie in the jar regardless of
     // domain (not just the ones scoped to the API host).
     const serialized = await this.jar.serialize();
@@ -399,11 +402,13 @@ export class CookidooHttpClient implements ICookidooClient {
         `content-type=${contentType} cf-mitigated=${cfMitigated ?? '-'} ` +
         `cookies=[${summary}]`,
     );
+    this.logger.warn(`Login form: ${loginForm}`);
     this.logger.warn(`Credentials POST body (first 600 chars): ${bodySnippet}`);
 
     throw new CookidooAuthException(
       `Login failed: missing session cookies [${missing.join(', ')}] ` +
         `(credentials POST returned ${postStatus}, content-type ${contentType || 'n/a'}). ` +
+        `Login form ${loginForm}. ` +
         `Cookies collected: ${summary}. ` +
         `POST body starts with: ${bodySnippet.slice(0, 200)}`,
     );
