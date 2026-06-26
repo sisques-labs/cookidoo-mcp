@@ -63,6 +63,21 @@ pnpm build && pnpm prod
 
 The MCP endpoint is then available at `http://localhost:3000/api/mcp`.
 
+## Cursor
+
+Cookidoo credentials live in the server `.env` — Cursor only needs the HTTP
+endpoint. The server must be running (`pnpm dev` or `pnpm prod`) before Cursor
+connects.
+
+1. Copy [`.cursor/mcp.json.example`](.cursor/mcp.json.example) to
+   `.cursor/mcp.json`.
+2. If you changed `PORT` in `.env`, update the URL port to match (default
+   `3000`).
+3. Restart Cursor (Settings → Tools & MCP should list **cookidoo**).
+
+Authentication is handled by the NestJS process via `COOKIDOO_EMAIL` /
+`COOKIDOO_PASSWORD`; do not put Cookidoo credentials in `mcp.json`.
+
 ## Tools
 
 | Tool | Kind | Description |

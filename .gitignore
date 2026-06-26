@@ -18,6 +18,7 @@ pnpm-debug.log*
 .idea
 .vscode/*
 !.vscode/extensions.json
+.cursor/mcp.json
 
 # tests
 /coverage
