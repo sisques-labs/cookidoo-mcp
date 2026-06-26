@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { wrapper } from 'axios-cookiejar-support';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { CookieJar } from 'tough-cookie';
 
 import {
@@ -69,11 +68,20 @@ const BROWSER_ACCEPT =
   'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,' +
   'image/webp,*/*;q=0.8';
 
+const MAX_REDIRECTS = 30;
+
 interface RequestOptions {
   params?: Record<string, string>;
   data?: unknown;
   headers?: Record<string, string>;
   parseResponse?: boolean;
+}
+
+interface SendOptions {
+  data?: unknown;
+  params?: Record<string, string>;
+  headers?: Record<string, string>;
+  responseType?: 'json' | 'text';
 }
 
 /**
@@ -84,6 +92,13 @@ interface RequestOptions {
  * OAuth2 redirect flow whose session cookies are kept in an in-memory jar;
  * login is lazy and re-attempted once on a 401. The adapter is a singleton, so
  * one logged-in session is shared across all requests.
+ *
+ * Redirects are followed manually (axios is configured with
+ * `maxRedirects: 0`): on every hop we read the matching cookies from the jar
+ * into the `Cookie` header and persist any `Set-Cookie` back. This mirrors
+ * aiohttp's `CookieJar(unsafe=True)` and is what makes the cross-domain OAuth2
+ * cookie exchange work — `axios-cookiejar-support` does not reliably persist
+ * cookies set during cross-domain redirects.
  */
 @Injectable()
 export class CookidooHttpClient implements ICookidooClient {
@@ -100,20 +115,106 @@ export class CookidooHttpClient implements ICookidooClient {
     this.config = configService.getOrThrow<CookidooConfig>('cookidoo');
     this.localization = this.config.localization;
     this.jar = new CookieJar();
-    this.http = wrapper(
-      axios.create({
-        jar: this.jar,
-        withCredentials: true,
-        maxRedirects: 30,
-        timeout: 30_000,
-        // Only the User-Agent is global. The JSON `Accept` is added per API
-        // request (see `dispatch`), never on the browser-style login flow.
-        headers: {
-          'User-Agent': BROWSER_USER_AGENT,
-        },
-        // Inspect every status manually so we can map 401 -> auth error.
-        validateStatus: () => true,
-      } as AxiosRequestConfig),
+    this.http = axios.create({
+      timeout: 30_000,
+      // Redirects are followed manually (see `sendFollowingRedirects`) so the
+      // cookie jar is applied on every hop.
+      maxRedirects: 0,
+      // Only the User-Agent is global. The JSON `Accept` is added per API
+      // request (see `dispatch`), never on the browser-style login flow.
+      headers: {
+        'User-Agent': BROWSER_USER_AGENT,
+      },
+      // Inspect every status manually so we can map 401 -> auth error and
+      // handle 3xx ourselves.
+      validateStatus: () => true,
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Low-level transport (manual redirect + cookie-jar handling)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Performs a single request, injecting the jar's cookies for the target URL
+   * and persisting any `Set-Cookie` from the response back into the jar.
+   */
+  private async send(
+    method: string,
+    url: string,
+    options: SendOptions,
+  ): Promise<AxiosResponse> {
+    const headers = { ...(options.headers ?? {}) };
+    const cookie = await this.jar.getCookieString(url);
+    if (cookie) {
+      headers.Cookie = cookie;
+    }
+
+    const response = await this.http.request({
+      method,
+      url,
+      data: options.data,
+      params: options.params,
+      headers,
+      responseType: options.responseType ?? 'json',
+    });
+
+    const setCookies = response.headers['set-cookie'] as string[] | undefined;
+    if (setCookies) {
+      for (const raw of setCookies) {
+        await this.jar
+          .setCookie(raw, url, { ignoreError: true })
+          .catch(() => undefined);
+      }
+    }
+
+    return response;
+  }
+
+  /**
+   * Sends a request and follows up to {@link MAX_REDIRECTS} redirects by hand,
+   * carrying the cookie jar across every (possibly cross-domain) hop. POST/PUT
+   * become GET on 301/302/303 (as browsers do); 307/308 keep the method.
+   */
+  private async sendFollowingRedirects(
+    method: 'get' | 'post' | 'delete',
+    url: string,
+    options: SendOptions = {},
+  ): Promise<AxiosResponse> {
+    let currentMethod: string = method;
+    let currentUrl = url;
+    let currentData = options.data;
+    let currentParams = options.params;
+    const headers = { ...(options.headers ?? {}) };
+
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+      const response = await this.send(currentMethod, currentUrl, {
+        data: currentData,
+        params: currentParams,
+        headers,
+        responseType: options.responseType,
+      });
+
+      const { status } = response;
+      const location = response.headers['location'] as string | undefined;
+      if (status >= 300 && status < 400 && location) {
+        currentUrl = new URL(location, currentUrl).toString();
+        // The redirect target carries its own query string.
+        currentParams = undefined;
+        if (status !== 307 && status !== 308) {
+          currentMethod = 'get';
+          currentData = undefined;
+          delete headers['Content-Type'];
+          delete headers['content-type'];
+        }
+        continue;
+      }
+
+      return response;
+    }
+
+    throw new CookidooRequestException(
+      'Login flow failed: too many redirects.',
     );
   }
 
@@ -164,7 +265,7 @@ export class CookidooHttpClient implements ICookidooClient {
 
     let loginHtml: string;
     try {
-      const resp = await this.http.get<string>(loginUrl, {
+      const resp = await this.sendFollowingRedirects('get', loginUrl, {
         responseType: 'text',
         headers: { Accept: BROWSER_ACCEPT },
       });
@@ -173,7 +274,7 @@ export class CookidooHttpClient implements ICookidooClient {
           `Login flow failed: could not reach login page (status ${resp.status}).`,
         );
       }
-      loginHtml = resp.data;
+      loginHtml = resp.data as string;
     } catch (error) {
       throw this.wrapNetworkError(error, 'reach login page');
     }
@@ -181,15 +282,15 @@ export class CookidooHttpClient implements ICookidooClient {
     const requestId = this.extractRequestId(loginHtml);
 
     try {
-      await this.http.post(
-        CIAM_LOGIN_SRV_URL,
-        new URLSearchParams({
+      await this.sendFollowingRedirects('post', CIAM_LOGIN_SRV_URL, {
+        data: new URLSearchParams({
           requestId,
           username: this.config.email,
           password: this.config.password,
         }),
-        { headers: { Accept: BROWSER_ACCEPT } },
-      );
+        responseType: 'text',
+        headers: { Accept: BROWSER_ACCEPT },
+      });
     } catch (error) {
       throw this.wrapNetworkError(error, 'submit credentials');
     }
@@ -281,9 +382,7 @@ export class CookidooHttpClient implements ICookidooClient {
     options: RequestOptions,
   ) {
     try {
-      return await this.http.request({
-        method,
-        url,
+      return await this.sendFollowingRedirects(method, url, {
         params: options.params,
         data: options.data,
         // API calls negotiate JSON; the login flow (which bypasses this helper)
