@@ -46,9 +46,9 @@ Credentials and localization come from environment variables (see
 |----------|----------|---------|-------------|
 | `COOKIDOO_EMAIL` | yes | — | Cookidoo account email |
 | `COOKIDOO_PASSWORD` | yes | — | Cookidoo account password |
-| `COOKIDOO_COUNTRY_CODE` | no | `ch` | Localization country code |
-| `COOKIDOO_LANGUAGE` | no | `de-CH` | Localization language |
-| `COOKIDOO_URL` | no | `https://cookidoo.ch/foundation/de-CH` | Localization base URL |
+| `COOKIDOO_COUNTRY_CODE` | no | `es` | Localization country code |
+| `COOKIDOO_LANGUAGE` | no | `es-ES` | Localization language |
+| `COOKIDOO_URL` | no | `https://cookidoo.es/foundation/es-ES` | Localization base URL |
 | `PORT` | no | `3000` | HTTP port |
 
 ## Running

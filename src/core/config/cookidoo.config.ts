@@ -9,12 +9,12 @@ function requireEnv(name: string): string {
 }
 
 /**
- * Default localization, matching the upstream `cookidoo-api` defaults
- * (Swiss Cookidoo, German). Override any field via environment variables.
+ * Default localization: Spanish Cookidoo (Spain).
+ * Override any field via environment variables.
  */
-const DEFAULT_COUNTRY_CODE = 'ch';
-const DEFAULT_LANGUAGE = 'de-CH';
-const DEFAULT_URL = 'https://cookidoo.ch/foundation/de-CH';
+const DEFAULT_COUNTRY_CODE = 'es';
+const DEFAULT_LANGUAGE = 'es-ES';
+const DEFAULT_URL = 'https://cookidoo.es/foundation/es-ES';
 
 export interface CookidooLocalization {
   readonly countryCode: string;
