@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.1.1-alpha.0] - 2026-06-26
+
+### Chore
+- Add GNU GPL v3 license (0b0bb58)
 ## [0.1.0-alpha.2] - 2026-06-26
 
 ### Chore
