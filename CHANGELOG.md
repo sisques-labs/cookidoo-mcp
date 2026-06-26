@@ -1,6 +1,15 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.2.0-alpha.0] - 2026-06-26
+
+### Chore
+- **.gitignore:** Add .cookidoo-session.json to ignore list (d29843a)
+
+### Features
+- **cookidoo:** Add meal-planner calendar tools (8176f55)
+- **cookidoo:** Migrate custom recipes, collections & shopping-list edits (5218f6a)
+- **cookidoo:** Add optional session persistence (COOKIDOO_COOKIE_FILE) (a75d934)
 ## [0.1.1-alpha.0] - 2026-06-26
 
 ### Chore
