@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.2.0-alpha.0] - 2026-06-26
+## [0.2.0] - 2026-06-26
 
 ### Chore
 - **.gitignore:** Add .cookidoo-session.json to ignore list (d29843a)
@@ -10,22 +10,11 @@ All notable changes to this project will be documented in this file.
 - **cookidoo:** Add meal-planner calendar tools (8176f55)
 - **cookidoo:** Migrate custom recipes, collections & shopping-list edits (5218f6a)
 - **cookidoo:** Add optional session persistence (COOKIDOO_COOKIE_FILE) (a75d934)
-## [0.1.1-alpha.0] - 2026-06-26
+## [0.1.1] - 2026-06-26
 
 ### Chore
 - Add GNU GPL v3 license (0b0bb58)
-## [0.1.0-alpha.2] - 2026-06-26
-
-### Chore
-- **cursor:** Add MCP client config for Cookidoo server (9ff7e72)
-
-### Documentation
-- **readme:** Document Docker run with env file or inline vars (65f83e7)
-## [0.1.0-alpha.1] - 2026-06-26
-
-### Chore
-- Add codegraph (4496910)
-## [0.1.0-alpha.0] - 2026-06-26
+## [0.1.0] - 2026-06-26
 
 ### Bug Fixes
 - **cookidoo:** Don't send JSON Accept header on the login flow (fe39452)
@@ -41,6 +30,11 @@ All notable changes to this project will be documented in this file.
 - **cookidoo:** Add standalone login diagnostic script (42e7cd9)
 - **cookidoo:** Log credentials POST body + login form fields (81e18cc)
 - **cookidoo:** Surface login form action + fields in auth error (af0fd58)
+- Add codegraph (4496910)
+- **cursor:** Add MCP client config for Cookidoo server (9ff7e72)
+
+### Documentation
+- **readme:** Document Docker run with env file or inline vars (65f83e7)
 
 ### Features
 - NestJS MCP server for Cookidoo (core migration) (160ecdc)
