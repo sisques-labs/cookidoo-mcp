@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.0-beta.0] - 2026-06-26
+
+### Features
+- **docs:** Add a real SVG favicon for the web (c4e3614)
 ## [0.2.2] - 2026-06-26
 
 ### Documentation
