@@ -1,16 +1,16 @@
-# cookidoo-mcp — Arquitectura y flujo de comunicación
+# cookidoo-mcp — Architecture & Communication Flow
 
-## Visión general
+## Overview
 
-`cookidoo-mcp` es un servidor [MCP (Model Context Protocol)](https://modelcontextprotocol.io) que conecta herramientas de IA (Claude, Cursor, etc.) con tu cuenta de Cookidoo. Recibe llamadas MCP del cliente de IA y las traduce en peticiones HTTP reales a la API de Cookidoo.
+`cookidoo-mcp` is an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that connects AI tools (Claude, Cursor, etc.) to your Cookidoo account. It receives MCP calls from the AI client and translates them into real HTTP requests to the Cookidoo API.
 
 ---
 
-## Diagrama de comunicación
+## Communication diagram
 
 ```mermaid
 flowchart TD
-    subgraph AI["🤖 Cliente de IA"]
+    subgraph AI["🤖 AI Client"]
         Claude["Claude / Cursor / IDE"]
     end
 
@@ -19,9 +19,9 @@ flowchart TD
 
         subgraph Transport["Transport — POST /api/mcp"]
             Controller["McpController\n(Streamable HTTP)"]
-            McpServer["McpServer\n(instancia por petición)"]
+            McpServer["McpServer\n(instance per request)"]
             Tools["MCP Tools\n(@McpTool)"]
-            Zod["Zod Schemas\n(validación de entrada)"]
+            Zod["Zod Schemas\n(input validation)"]
         end
 
         subgraph Application["Application — CQRS Bus"]
@@ -37,13 +37,13 @@ flowchart TD
 
         subgraph Infrastructure["Infrastructure"]
             HttpClient["CookidooHttpClient\n(singleton)"]
-            Auth["OAuth2 Cookie Flow\n(login lazy + re-auth en 401)"]
-            CookieFile["Cookie File\n(COOKIDOO_COOKIE_FILE, opcional)"]
+            Auth["OAuth2 Cookie Flow\n(lazy login + re-auth on 401)"]
+            CookieFile["Cookie File\n(COOKIDOO_COOKIE_FILE, optional)"]
         end
     end
 
     subgraph External["☁️ Cookidoo"]
-        CookidooAPI["API REST de Cookidoo\nhttps://cookidoo.es"]
+        CookidooAPI["Cookidoo REST API\nhttps://cookidoo.es"]
     end
 
     Claude -->|"POST /api/mcp\n(JSON-RPC, MCP Protocol)"| Controller
@@ -54,20 +54,20 @@ flowchart TD
     Tools -->|"dispatch Command/Query"| Queries
     Commands --> Handlers
     Queries --> Handlers
-    Handlers -->|"llama al puerto"| Port
-    Port -.->|"implementado por"| HttpClient
+    Handlers -->|"calls port"| Port
+    Port -.->|"implemented by"| HttpClient
     HttpClient --> Auth
     Auth --> CookieFile
     HttpClient -->|"HTTPS"| CookidooAPI
     CookidooAPI -->|"JSON"| HttpClient
-    HttpClient -->|"resultado"| Handlers
-    Handlers -->|"respuesta"| Tools
+    HttpClient -->|"result"| Handlers
+    Handlers -->|"response"| Tools
     Tools -->|"tool result (JSON)"| Claude
 ```
 
 ---
 
-## Flujo de una petición paso a paso
+## Step-by-step request flow
 
 ```mermaid
 sequenceDiagram
@@ -81,63 +81,63 @@ sequenceDiagram
 
     AI->>MCP: POST /api/mcp {tool: "cookidoo_search_recipes", params: {...}}
     MCP->>Tool: dispatch tool call
-    Tool->>Tool: validar input con Zod
+    Tool->>Tool: validate input with Zod
     Tool->>Bus: QueryBus.execute(SearchRecipesQuery)
     Bus->>Handler: RecipeSearchHandler.execute()
     Handler->>Client: client.searchRecipes(params)
-    Client->>API: GET /api/recipes?... (con cookie de sesión)
-    API-->>Client: JSON con resultados
+    Client->>API: GET /api/recipes?... (with session cookie)
+    API-->>Client: JSON results
     Client-->>Handler: CookidooSearchResult[]
-    Handler-->>Bus: resultado mapeado
-    Bus-->>Tool: resultado
+    Handler-->>Bus: mapped result
+    Bus-->>Tool: result
     Tool-->>MCP: tool result JSON
-    MCP-->>AI: respuesta MCP
+    MCP-->>AI: MCP response
 ```
 
 ---
 
-## Capas de la arquitectura
+## Architecture layers
 
-| Capa | Ubicación | Responsabilidad |
+| Layer | Location | Responsibility |
 |---|---|---|
-| **Transport** | `src/core/mcp/transport/` | Recibe peticiones HTTP, construye un `McpServer` por petición, registra las tools |
-| **MCP Tools** | `src/contexts/cookidoo/transport/mcp/tools/` | Una clase por tool, valida con Zod y despacha al bus |
-| **Application** | `src/contexts/cookidoo/application/` | Commands y Queries CQRS; los handlers llaman al puerto |
-| **Domain** | `src/contexts/cookidoo/domain/` | Tipos, excepciones, la interfaz `ICookidooClient` (puerto) |
-| **Infrastructure** | `src/contexts/cookidoo/infrastructure/` | `CookidooHttpClient`: implementación concreta del puerto, gestiona la sesión OAuth2 |
+| **Transport** | `src/core/mcp/transport/` | Receives HTTP requests, builds one `McpServer` per request, registers tools |
+| **MCP Tools** | `src/contexts/cookidoo/transport/mcp/tools/` | One class per tool — validates with Zod and dispatches to the bus |
+| **Application** | `src/contexts/cookidoo/application/` | CQRS Commands & Queries; handlers call the port |
+| **Domain** | `src/contexts/cookidoo/domain/` | Types, exceptions, the `ICookidooClient` interface (port) |
+| **Infrastructure** | `src/contexts/cookidoo/infrastructure/` | `CookidooHttpClient`: concrete port implementation, manages the OAuth2 session |
 
 ---
 
-## Autenticación con Cookidoo
+## Cookidoo authentication flow
 
 ```mermaid
 flowchart LR
-    Start([Primera llamada]) --> HasCookie{¿Cookie\nválida?}
-    HasCookie -->|Sí| CallAPI[Llamada a la API]
-    HasCookie -->|No| Login[Login OAuth2\ncon email + password]
-    Login --> SaveCookie[Guardar cookie\nen COOKIDOO_COOKIE_FILE]
+    Start([First call]) --> HasCookie{Valid\ncookie?}
+    HasCookie -->|Yes| CallAPI[Call API]
+    HasCookie -->|No| Login[OAuth2 login\nwith email + password]
+    Login --> SaveCookie[Save cookie\nto COOKIDOO_COOKIE_FILE]
     SaveCookie --> CallAPI
     CallAPI --> Got401{401?}
-    Got401 -->|No| Result([Resultado])
-    Got401 -->|Sí| Login
+    Got401 -->|No| Result([Result])
+    Got401 -->|Yes| Login
 ```
 
-El cliente es un **singleton**: guarda la sesión en memoria y, si se configura `COOKIDOO_COOKIE_FILE`, la persiste en disco entre reinicios. Un `401` de la API dispara automáticamente un nuevo login sin que el llamador tenga que hacer nada.
+The client is a **singleton**: it keeps the session in memory and, when `COOKIDOO_COOKIE_FILE` is set, persists it to disk across restarts. A `401` from the API automatically triggers a new login — callers never deal with sessions.
 
 ---
 
-## Tools disponibles por dominio
+## Available tools by domain
 
 ```mermaid
 mindmap
   root((cookidoo-mcp))
-    Cuenta
+    Account
       get_user_info
       get_active_subscription
-    Recetas
+    Recipes
       search_recipes
       get_recipe_details
-    Lista de la compra
+    Shopping List
       get_shopping_list_recipes
       get_ingredient_items
       get_additional_items
@@ -151,18 +151,18 @@ mindmap
       edit_additional_items
       add_custom_recipe_ingredients
       remove_custom_recipe_ingredients
-    Calendario
+    Calendar
       get_calendar_week
       add_recipes_to_calendar
       remove_recipe_from_calendar
       add_custom_recipes_to_calendar
       remove_custom_recipe_from_calendar
-    Recetas personalizadas
+    Custom Recipes
       list_custom_recipes
       get_custom_recipe
       add_custom_recipe
       remove_custom_recipe
-    Colecciones
+    Collections
       count_managed_collections
       get_managed_collections
       add_managed_collection
