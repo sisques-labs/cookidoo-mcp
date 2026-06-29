@@ -1,6 +1,6 @@
 {
   "name": "sisques-labs/cookidoo-mcp",
-  "version": "0.3.1-beta.0",
+  "version": "0.3.1",
   "description": "MCP server for Cookidoo (NestJS)",
   "author": "Sisques Labs",
   "repository": {
