@@ -313,7 +313,10 @@ export function customRecipeFromJson(
   };
 }
 
-export function collectionFromJson(collection: Json): CookidooCollection {
+export function collectionFromJson(
+  collection: Json,
+  localization: CookidooLocalization,
+): CookidooCollection {
   const chapters: Json[] = collection.chapters ?? [];
   return {
     id: collection.id,
@@ -326,6 +329,7 @@ export function collectionFromJson(collection: Json): CookidooCollection {
           id: recipe.id,
           name: recipe.title,
           totalTime: Math.trunc(Number(recipe.totalTime ?? 0)),
+          url: constructRecipeUrl(localization, recipe.id),
         })),
       }),
     ),

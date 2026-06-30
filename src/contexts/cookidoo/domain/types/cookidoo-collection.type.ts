@@ -3,6 +3,7 @@ export interface CookidooChapterRecipe {
   readonly id: string;
   readonly name: string;
   readonly totalTime: number;
+  readonly url: string;
 }
 
 /** A chapter (group of recipes) within a collection. */

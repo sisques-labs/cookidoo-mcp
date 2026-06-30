@@ -341,18 +341,21 @@ describe('cookidoo mappers', () => {
   });
 
   describe('collectionFromJson', () => {
-    it('maps id/title/description and nested chapters', () => {
-      const result = collectionFromJson({
-        id: 'col1',
-        title: 'Weeknight dinners',
-        description: 'Quick meals',
-        chapters: [
-          {
-            title: 'Pasta',
-            recipes: [{ id: 'r1', title: 'Carbonara', totalTime: '1500' }],
-          },
-        ],
-      });
+    it('maps id/title/description and nested chapters with urls', () => {
+      const result = collectionFromJson(
+        {
+          id: 'col1',
+          title: 'Weeknight dinners',
+          description: 'Quick meals',
+          chapters: [
+            {
+              title: 'Pasta',
+              recipes: [{ id: 'r1', title: 'Carbonara', totalTime: '1500' }],
+            },
+          ],
+        },
+        localization,
+      );
 
       expect(result).toEqual({
         id: 'col1',
@@ -361,14 +364,24 @@ describe('cookidoo mappers', () => {
         chapters: [
           {
             name: 'Pasta',
-            recipes: [{ id: 'r1', name: 'Carbonara', totalTime: 1500 }],
+            recipes: [
+              {
+                id: 'r1',
+                name: 'Carbonara',
+                totalTime: 1500,
+                url: 'https://cookidoo.ch/recipes/recipe/de-CH/r1',
+              },
+            ],
           },
         ],
       });
     });
 
     it('defaults missing description and chapters', () => {
-      const result = collectionFromJson({ id: 'col2', title: 'Empty' });
+      const result = collectionFromJson(
+        { id: 'col2', title: 'Empty' },
+        localization,
+      );
 
       expect(result.description).toBeNull();
       expect(result.chapters).toEqual([]);

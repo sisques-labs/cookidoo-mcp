@@ -1100,7 +1100,7 @@ export class CookidooHttpClient implements ICookidooClient {
     );
     const data = this.ensureObject(result, 'loading managed collections');
     const lists: any[] = data.managedlists ?? [];
-    return lists.map(collectionFromJson);
+    return lists.map((c) => collectionFromJson(c, this.localization));
   }
 
   async addManagedCollection(
@@ -1115,6 +1115,7 @@ export class CookidooHttpClient implements ICookidooClient {
     const data = this.ensureObject(result, 'add managed collection');
     return collectionFromJson(
       this.ensureObject(data.content, 'add managed collection'),
+      this.localization,
     );
   }
 
@@ -1145,7 +1146,7 @@ export class CookidooHttpClient implements ICookidooClient {
     );
     const data = this.ensureObject(result, 'loading custom collections');
     const lists: any[] = data.customlists ?? [];
-    return lists.map(collectionFromJson);
+    return lists.map((c) => collectionFromJson(c, this.localization));
   }
 
   async addCustomCollection(name: string): Promise<CookidooCollection> {
@@ -1158,6 +1159,7 @@ export class CookidooHttpClient implements ICookidooClient {
     const data = this.ensureObject(result, 'add custom collection');
     return collectionFromJson(
       this.ensureObject(data.content, 'add custom collection'),
+      this.localization,
     );
   }
 
@@ -1185,6 +1187,7 @@ export class CookidooHttpClient implements ICookidooClient {
     const data = this.ensureObject(result, 'add recipes to custom collection');
     return collectionFromJson(
       this.ensureObject(data.content, 'add recipes to custom collection'),
+      this.localization,
     );
   }
 
@@ -1206,6 +1209,7 @@ export class CookidooHttpClient implements ICookidooClient {
     );
     return collectionFromJson(
       this.ensureObject(data.content, 'remove recipe from custom collection'),
+      this.localization,
     );
   }
 
