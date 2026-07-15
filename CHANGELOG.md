@@ -1,6 +1,28 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.2] - 2026-07-15
+
+### Chore
+- **deps:** Bump actions/checkout from 4 to 7 (42cc677)
+- **deps:** Bump docker/setup-qemu-action from 3 to 4 (46382d1)
+- **deps:** Bump docker/setup-buildx-action from 3 to 4 (2da28e6)
+- **deps:** Bump docker/build-push-action from 6 to 7 (28b9766)
+- **deps:** Bump tough-cookie from 5.1.2 to 6.0.2 (e425a8d)
+- **deps-dev:** Bump jest and @types/jest (8c3409b)
+- **deps:** Bump @nestjs/cqrs from 10.2.8 to 11.0.3 (62081e1)
+- **deps-dev:** Bump prettier from 3.8.4 to 3.9.5 (94f1ac7)
+- **deps-dev:** Bump @nestjs/schematics from 10.2.3 to 11.1.0 (c69f6df)
+- **deps-dev:** Bump @nestjs/cli from 10.4.9 to 11.0.24 (40c7527)
+- **deps-dev:** Bump eslint-config-prettier from 9.1.2 to 10.1.8 (6671cfc)
+- **deps-dev:** Bump @types/supertest from 6.0.3 to 7.2.1 (c68f646)
+- **deps-dev:** Bump @types/node from 20.19.43 to 26.1.1 (f9bef04)
+- **deps:** Bump class-validator from 0.14.4 to 0.15.1 (e49c94a)
+- **deps-dev:** Bump lint-staged from 15.5.2 to 17.0.8 (5d583e7)
+- **deps-dev:** Bump @typescript-eslint/parser from 8.62.0 to 8.64.0 (aa8df15)
+
+### Documentation
+- **docker:** Add Docker Hub README for running the image (d08e08d)
 ## [0.3.1] - 2026-06-29
 
 ### Documentation
