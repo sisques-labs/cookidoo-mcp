@@ -39,7 +39,7 @@
     "express": "^5.2.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "tough-cookie": "^5.1.2",
+    "tough-cookie": "^6.0.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
