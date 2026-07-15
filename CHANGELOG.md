@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [0.3.1-beta.0] - 2026-06-28
+## [0.3.1] - 2026-06-29
 
 ### Documentation
 - Add architecture diagram for cookidoo-mcp (6f027ef)
