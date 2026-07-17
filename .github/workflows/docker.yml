@@ -7,28 +7,17 @@ concurrency:
   group: docker-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   docker:
-    name: Smoke build (buildx, no push)
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: false
-          load: false
-          tags: cookidoo-mcp:smoke
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    uses: sisques-labs/workflows/.github/workflows/docker-smoke-build.yml@main
+    with:
+      image_name: cookidoo-mcp
+      platforms: linux/amd64,linux/arm64
+      scan_image: true
+    permissions:
+      contents: read
+      security-events: write

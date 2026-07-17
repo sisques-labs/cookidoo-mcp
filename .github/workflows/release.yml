@@ -26,6 +26,7 @@ on:
 permissions:
   contents: write
   packages: write
+  security-events: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -44,9 +45,11 @@ jobs:
       run_lint: true
       run_test: true
       platforms: linux/amd64,linux/arm64
+      scan_image: true
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     permissions:
       contents: write
       packages: write
+      security-events: write

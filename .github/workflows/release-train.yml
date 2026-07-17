@@ -7,6 +7,7 @@ on:
 permissions:
   contents: write
   packages: write
+  security-events: write
 
 # One group for the whole repo: develop/staging/main releases are serialized
 # so two channels never compute versions from a half-updated tag state.
@@ -26,9 +27,12 @@ jobs:
       run_test: true
       platforms: linux/amd64,linux/arm64
       sync_develop_after_stable: true
+      scan_image: true
+      sync_dependabot_updates_after_stable: true
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     permissions:
       contents: write
       packages: write
+      security-events: write
