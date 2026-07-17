@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.3] - 2026-07-17
+
+### Chore
+- Update extends property in renovate.json (9a53905)
 ## [0.3.2] - 2026-07-15
 
 ### Chore
