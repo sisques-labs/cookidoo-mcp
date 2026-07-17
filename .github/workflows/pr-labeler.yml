@@ -1,0 +1,9 @@
+name: PR Labeler
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  label:
+    uses: sisques-labs/workflows/.github/workflows/pr-labeler.yml@main
