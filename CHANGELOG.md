@@ -1,6 +1,20 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.4] - 2026-07-17
+
+### Bug Fixes
+- **deps:** Update dependency @nestjs/platform-express to v11 (c570abe)
+- **deps:** Update dependency @nestjs/common to v11 (50724d0)
+- **deps:** Update dependency @nestjs/core to v11 (92db0bb)
+
+### Chore
+- **deps:** Update npm minor and patch updates (d42eb74)
+- **deps:** Update node.js to v24 (8b28a4b)
+- **deps:** Update node.js to v24 (2e5b3d7)
+- **deps:** Lock file maintenance (1710399)
+- **deps:** Update dependency @nestjs/testing to v11 (e9d4033)
+- **deps:** Lock file maintenance (074bfee)
 ## [0.3.3] - 2026-07-17
 
 ### Chore
