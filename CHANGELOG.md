@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.5] - 2026-07-17
+
+### CI
+- **labeler:** Auto-label PRs by changed files (301c757)
+- **release-train:** Sync dependabot/updates after stable release (97cbcff)
+- Parallelize lint/test/build via node-ci (37e3c77)
+- **docker:** Block PR merge on CRITICAL image vulnerabilities (4f3d4a9)
+- **release:** Scan Docker image for vulnerabilities with Trivy (63947e7)
+
+### Chore
+- Add CodeQL workflow for code analysis (ec8ea4e)
 ## [0.3.4] - 2026-07-17
 
 ### Bug Fixes
