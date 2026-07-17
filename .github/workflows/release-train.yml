@@ -26,6 +26,7 @@ jobs:
       run_test: true
       platforms: linux/amd64,linux/arm64
       sync_develop_after_stable: true
+      sync_dependabot_updates_after_stable: true
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
