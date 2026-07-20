@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.6] - 2026-07-20
+
+### Chore
+- **deps:** Update dependency lint-staged to v17.1.0 (4da7ac4)
+- **deps:** Lock file maintenance (6c9bb25)
 ## [0.3.5] - 2026-07-17
 
 ### CI
