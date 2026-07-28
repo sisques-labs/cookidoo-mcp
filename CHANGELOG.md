@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.7] - 2026-07-28
+
+### Bug Fixes
+- **docker:** Drop global npm from runner image to clear CVE-2026-59873 (aad1725)
 ## [0.3.6] - 2026-07-20
 
 ### Chore
