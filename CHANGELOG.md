@@ -1,6 +1,15 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.8] - 2026-07-29
+
+### Chore
+- **deps:** Update dependency prettier to v3.9.6 (a356edf)
+- **deps:** Update dependency ts-jest to v29.4.12 (bc9951e)
+- **deps:** Update dependency @typescript-eslint/eslint-plugin to v8.65.0 (#91) (7914dfa)
+- **deps:** Update dependency @typescript-eslint/parser to v8.65.0 (#92) (80ce30e)
+- **deps:** Update dependency lint-staged to v17.2.0 (#93) (f674f5b)
+- **deps:** Lock file maintenance (#88) (9f752df)
 ## [0.3.7] - 2026-07-28
 
 ### Bug Fixes
