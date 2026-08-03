@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.10] - 2026-08-03
+
+### Chore
+- **deps:** Update dependency axios to v1.19.0 (#105) (376d063)
+- **deps:** Lock file maintenance (#108) (8527fc2)
+- **deps:** Update pnpm to v11.18.0 (d886c76)
 ## [0.3.9] - 2026-07-29
 
 ### Bug Fixes
