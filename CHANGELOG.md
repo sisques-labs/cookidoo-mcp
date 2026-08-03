@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.9] - 2026-07-29
+
+### Bug Fixes
+- **ci:** Copy pnpm-workspace.yaml into docker build context (43ea275)
+
+### Chore
+- Migrate to pnpm 11 and TypeScript 6 (2994352)
 ## [0.3.8] - 2026-07-29
 
 ### Chore

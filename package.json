@@ -1,6 +1,6 @@
 {
   "name": "sisques-labs/cookidoo-mcp",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "MCP server for Cookidoo (NestJS)",
   "author": "Sisques Labs",
   "repository": {
@@ -10,7 +10,7 @@
   "homepage": "https://github.com/sisques-labs/cookidoo-mcp",
   "private": true,
   "license": "GPL-3.0-or-later",
-  "packageManager": "pnpm@11.17.0",
+  "packageManager": "pnpm@11.18.0",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
