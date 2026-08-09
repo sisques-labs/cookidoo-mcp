@@ -69,6 +69,16 @@ Expected response:
 | `COOKIDOO_URL` | `https://cookidoo.es/foundation/es-ES` | Localization base URL |
 | `COOKIDOO_COOKIE_FILE` | — | Path inside the container to persist the session across restarts |
 | `COOKIDOO_DEBUG` | `false` | Set to `true` to log the full OAuth2 login flow when debugging authentication |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | — | OpenTelemetry traces + metrics + logs disabled when unset |
+| `OTEL_SERVICE_NAME` | `cookidoo-mcp` | Service name reported on exported traces/metrics/logs |
+| `OTEL_TRACES_SAMPLE_RATIO` | `1.0` | Trace sampling ratio (`0`–`1`) |
+| `OTEL_METRIC_EXPORT_INTERVAL_MILLIS` | `15000` | Metric export interval in milliseconds |
+| `LOG_LEVEL` | `info` | Minimum Winston log level (`error`/`warn`/`info`/`http`/`verbose`/`debug`) |
+
+Traces, metrics, and logs are pushed via OTLP to a collector when
+`OTEL_EXPORTER_OTLP_ENDPOINT` is set — there is no in-process `/metrics`
+endpoint to scrape. Structured logs always go to stdout as colorized JSON
+regardless (via Winston), OTLP forwarding is additive.
 
 Override all three localization variables together to target another market. Examples:
 
