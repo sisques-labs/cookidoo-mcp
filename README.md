@@ -52,10 +52,22 @@ Credentials and localization come from environment variables (see
 | `COOKIDOO_COOKIE_FILE` | no | — | Path to persist the session across restarts (see below) |
 | `COOKIDOO_DEBUG` | no | `false` | Set to `true` to log the full OAuth2 login flow (each redirect hop and `Set-Cookie` outcome) when debugging authentication |
 | `PORT` | no | `3000` | HTTP port |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | no | — | OpenTelemetry traces + metrics (OTLP); disabled when unset |
-| `OTEL_SERVICE_NAME` | no | `cookidoo-mcp` | Service name reported on exported traces/metrics |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | no | — | OpenTelemetry traces + metrics + logs (OTLP); all disabled together when unset |
+| `OTEL_SERVICE_NAME` | no | `cookidoo-mcp` | Service name reported on exported traces/metrics/logs |
 | `OTEL_TRACES_SAMPLE_RATIO` | no | `1.0` | Trace sampling ratio (`0`–`1`) |
 | `OTEL_METRIC_EXPORT_INTERVAL_MILLIS` | no | `15000` | Metric export interval in milliseconds |
+| `LOG_LEVEL` | no | `info` | Minimum Winston log level (`error`/`warn`/`info`/`http`/`verbose`/`debug`) |
+
+### Logging
+
+`src/support/logging/` wires up structured logging via `@sisques-labs/nestjs-kit`'s
+`createSharedWinstonLoggerOptions` (`winston` + `nest-winston` under the hood,
+same as the org's other services). `main.ts` installs it as Nest's app-wide
+logger, so every existing `Logger.log(...)`/`Logger.error(...)` call is
+routed through it automatically. Colorized console output plus JSON
+daily-rotating file logs (`logs/`, gitignored) are always on; when
+`OTEL_EXPORTER_OTLP_ENDPOINT` is set, every log line is also forwarded via
+OTLP alongside traces/metrics, correlated with the active span.
 
 ### OpenTelemetry
 
@@ -64,7 +76,8 @@ import in `src/main.ts`, so HTTP/Express auto-instrumentation can patch those
 modules before Nest requires them. It stays disabled until
 `OTEL_EXPORTER_OTLP_ENDPOINT` is set. When enabled, `src/core/observability/`
 also wraps the CQRS command/query buses so every dispatch gets a trace span
-plus duration/count metrics, with no per-handler wiring required.
+plus duration/count metrics, with no per-handler wiring required, and every
+Winston log line is forwarded too (see Logging above).
 
 ### Session persistence
 
