@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.4.0] - 2026-08-09
+
+### Features
+- **observability:** Add OpenTelemetry traces and metrics (e514d94)
+- **observability:** Add Winston logging with OpenTelemetry log forwarding (a832386)
+
+### Refactor
+- **observability:** Use @sisques-labs/nestjs-kit for shared Winston config (3b85730)
 ## [0.3.10] - 2026-08-03
 
 ### Chore
