@@ -60,13 +60,14 @@ Credentials and localization come from environment variables (see
 
 ### Logging
 
-`src/support/logging/` wires up structured logging via `winston` +
-`nest-winston` (no `@sisques-labs/nestjs-kit` dependency — this repo builds
-the equivalent locally). `main.ts` installs it as Nest's app-wide logger, so
-every existing `Logger.log(...)`/`Logger.error(...)` call is routed through
-it automatically. Console output is always colorized JSON-backed structured
-logs; when `OTEL_EXPORTER_OTLP_ENDPOINT` is set, every log line is also
-forwarded via OTLP alongside traces/metrics, correlated with the active span.
+`src/support/logging/` wires up structured logging via `@sisques-labs/nestjs-kit`'s
+`createSharedWinstonLoggerOptions` (`winston` + `nest-winston` under the hood,
+same as the org's other services). `main.ts` installs it as Nest's app-wide
+logger, so every existing `Logger.log(...)`/`Logger.error(...)` call is
+routed through it automatically. Colorized console output plus JSON
+daily-rotating file logs (`logs/`, gitignored) are always on; when
+`OTEL_EXPORTER_OTLP_ENDPOINT` is set, every log line is also forwarded via
+OTLP alongside traces/metrics, correlated with the active span.
 
 ### OpenTelemetry
 
