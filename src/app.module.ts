@@ -9,6 +9,7 @@ import { HealthModule } from '@core/health/health.module';
 import { McpModule } from '@core/mcp/mcp.module';
 import { ObservabilityModule } from '@core/observability/observability.module';
 import { CookidooModule } from '@contexts/cookidoo/cookidoo.module';
+import { LoggingModule } from './support/logging/logging.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CookidooModule } from '@contexts/cookidoo/cookidoo.module';
       load: [cookidooConfig, otelConfig],
       cache: true,
     }),
+    LoggingModule,
     ObservabilityModule,
     HealthModule,
     McpModule,

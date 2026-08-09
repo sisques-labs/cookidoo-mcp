@@ -6,7 +6,9 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-proto';
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import {
   ParentBasedSampler,
   TraceIdRatioBasedSampler,
@@ -86,6 +88,13 @@ if (endpoint) {
         15000,
       ),
     }),
+    // Winston forwards every log line to this via the OpenTelemetryTransportV3
+    // transport (src/support/logging) — logs keep going to console as
+    // before, and now also flow through the same OTLP pipeline as
+    // traces/metrics, correlated with the active span.
+    logRecordProcessors: [
+      new BatchLogRecordProcessor({ exporter: new OTLPLogExporter() }),
+    ],
     instrumentations: [
       // Whitelist rather than disable-by-name: only the packages this
       // service actually uses (HTTP/Express entry points) get patched,
