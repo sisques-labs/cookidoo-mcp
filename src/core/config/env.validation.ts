@@ -32,6 +32,11 @@ const baseEnvSchema = z.object({
   COOKIDOO_URL: z.string().trim().url().optional(),
 
   COOKIDOO_COOKIE_FILE: z.string().trim().min(1).optional(),
+
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().trim().url().optional(),
+  OTEL_SERVICE_NAME: z.string().optional(),
+  OTEL_TRACES_SAMPLE_RATIO: z.coerce.number().min(0).max(1).optional(),
+  OTEL_METRIC_EXPORT_INTERVAL_MILLIS: z.coerce.number().positive().optional(),
 });
 
 export function validateEnv(

@@ -52,6 +52,19 @@ Credentials and localization come from environment variables (see
 | `COOKIDOO_COOKIE_FILE` | no | — | Path to persist the session across restarts (see below) |
 | `COOKIDOO_DEBUG` | no | `false` | Set to `true` to log the full OAuth2 login flow (each redirect hop and `Set-Cookie` outcome) when debugging authentication |
 | `PORT` | no | `3000` | HTTP port |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | no | — | OpenTelemetry traces + metrics (OTLP); disabled when unset |
+| `OTEL_SERVICE_NAME` | no | `cookidoo-mcp` | Service name reported on exported traces/metrics |
+| `OTEL_TRACES_SAMPLE_RATIO` | no | `1.0` | Trace sampling ratio (`0`–`1`) |
+| `OTEL_METRIC_EXPORT_INTERVAL_MILLIS` | no | `15000` | Metric export interval in milliseconds |
+
+### OpenTelemetry
+
+`src/telemetry.ts` bootstraps the OpenTelemetry Node SDK ahead of every other
+import in `src/main.ts`, so HTTP/Express auto-instrumentation can patch those
+modules before Nest requires them. It stays disabled until
+`OTEL_EXPORTER_OTLP_ENDPOINT` is set. When enabled, `src/core/observability/`
+also wraps the CQRS command/query buses so every dispatch gets a trace span
+plus duration/count metrics, with no per-handler wiring required.
 
 ### Session persistence
 

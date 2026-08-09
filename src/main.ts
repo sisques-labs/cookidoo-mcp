@@ -1,3 +1,5 @@
+import './telemetry';
+
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 
