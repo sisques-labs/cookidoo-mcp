@@ -136,7 +136,7 @@ importers:
         specifier: 8.57.1
         version: 8.57.1(supports-color@8.1.1)
       eslint-config-prettier:
-        specifier: ^10.1.8
+        specifier: 10.1.8
         version: 10.1.8(eslint@8.57.1(supports-color@8.1.1))
       eslint-plugin-prettier:
         specifier: ^5.0.0
