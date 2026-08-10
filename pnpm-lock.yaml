@@ -109,7 +109,7 @@ importers:
         specifier: 11.0.24
         version: 11.0.24(@types/node@26.2.0)(prettier@3.9.6)(uglify-js@3.19.3)
       '@nestjs/schematics':
-        specifier: ^11.1.0
+        specifier: 11.1.0
         version: 11.1.0(chokidar@4.0.3)(prettier@3.9.6)(typescript@6.0.3)
       '@nestjs/testing':
         specifier: ^11.0.0
