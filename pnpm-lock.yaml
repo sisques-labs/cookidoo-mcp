@@ -118,7 +118,7 @@ importers:
         specifier: ^5.0.6
         version: 5.0.6
       '@types/jest':
-        specifier: ^30.0.0
+        specifier: 30.0.0
         version: 30.0.0
       '@types/node':
         specifier: 26.2.0
@@ -145,7 +145,7 @@ importers:
         specifier: 9.1.7
         version: 9.1.7
       jest:
-        specifier: ^30.4.2
+        specifier: 30.4.2
         version: 30.4.2(@types/node@26.2.0)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@26.2.0)(typescript@6.0.3))
       lint-staged:
         specifier: ^17.0.8
