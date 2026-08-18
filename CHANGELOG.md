@@ -1,6 +1,22 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.4.1] - 2026-08-10
+
+### Chore
+- **deps:** Update dependency @types/node to v26.2.0 (#116) (4946baf)
+- **deps:** Update dependency @typescript-eslint/eslint-plugin to v8.66.0 (1cdab59)
+- **deps:** Update pnpm to v11.21.0 (ef6c1cc)
+- **deps:** Pin dependency @nestjs/cli to 11.0.24 (fa9cc45)
+- **deps:** Pin dependency @nestjs/schematics to 11.1.0 (435184e)
+- **deps:** Pin dependency @nestjs/testing to 11.1.28 (efcb0ab)
+- **deps:** Pin dependency @types/node to 26.2.0 (873c630)
+- **deps:** Pin dependency @typescript-eslint/eslint-plugin to 8.66.0 (886963b)
+- **deps:** Pin dependency @typescript-eslint/parser to 8.65.0 (c305196)
+- **deps:** Pin dependency husky to 9.1.7 (cb7eb13)
+- **deps:** Pin dependency eslint to 8.57.1 (0bcd182)
+- **deps:** Pin dependency eslint-config-prettier to 10.1.8 (0b1dfab)
+- **deps:** Pin dependency eslint-plugin-prettier to 5.5.6 (04e7fc0)
 ## [0.4.0] - 2026-08-09
 
 ### Features
