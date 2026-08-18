@@ -1,6 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.4.2] - 2026-08-18
+
+### Chore
+- **deps:** Pin dependency jest to 30.4.2 (#141) (125e4f1)
+- **deps:** Pin node.js to v24.19.0 (265d1ee)
+- **deps:** Pin dependency typescript to 6.0.3 (c53837f)
+- **deps:** Pin dependency lint-staged to 17.3.0 (#142) (0214e8f)
+- **deps:** Pin dependency tsconfig-paths to 4.2.0 (7d0e4d2)
+- **deps:** Pin dependency prettier to 3.9.6 (c60f923)
+- **deps:** Pin dependency ts-loader to 9.6.2 (8b1c575)
+- **deps:** Pin dependency supertest to 7.2.2 (#144) (279aa93)
+- **deps:** Pin dependency ts-jest to 29.4.12 (#145) (a072d25)
+- **deps:** Pin dependency ts-node to 10.9.2 (#147) (cfdc899)
 ## [0.4.1] - 2026-08-10
 
 ### Chore
