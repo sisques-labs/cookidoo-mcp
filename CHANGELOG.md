@@ -1,6 +1,24 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.4.3] - 2026-08-26
+
+### Bug Fixes
+- **deps:** Pin dependency @modelcontextprotocol/sdk to 1.30.0 (#154) (31a9057)
+- **deps:** Pin dependency @nestjs/common to 11.1.28 (#155) (6a1cbea)
+- **deps:** Pin dependency @nestjs/config to 4.0.4 (#156) (69c6087)
+- **deps:** Pin dependency @nestjs/core to 11.1.28 (#157) (626fb09)
+- **deps:** Pin dependency @nestjs/cqrs to 11.0.3 (#158) (5f7e40d)
+- **deps:** Pin dependency @nestjs/platform-express to 11.1.28 (#159) (9f0f2a3)
+- **deps:** Pin dependency @opentelemetry/api to 1.9.1 (#160) (b433dd8)
+- **deps:** Pin dependency @opentelemetry/api-logs to 0.221.0 (b7acf30)
+- **deps:** Pin dependency @opentelemetry/auto-instrumentations-node to 0.79.0 (58c6694)
+- **deps:** Pin dependency @opentelemetry/exporter-logs-otlp-proto to 0.221.0 (a6b7487)
+- **deps:** Pin dependency @opentelemetry/exporter-metrics-otlp-proto to 0.221.0 (#164) (6c30ef5)
+- **deps:** Pin dependency @opentelemetry/exporter-trace-otlp-proto to 0.221.0 (#165) (1c7f55f)
+- **deps:** Pin dependency @opentelemetry/resources to 2.10.0 (202e6be)
+- **deps:** Pin dependency @opentelemetry/sdk-logs to 0.221.0 (b665e68)
+- **deps:** Pin dependency @opentelemetry/sdk-metrics to 2.10.0 (f3a52b0)
 ## [0.4.2] - 2026-08-18
 
 ### Chore
