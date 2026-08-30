@@ -63,7 +63,7 @@ importers:
         specifier: 1.43.0
         version: 1.43.0
       '@opentelemetry/winston-transport':
-        specifier: ^0.31.0
+        specifier: 0.31.0
         version: 0.31.0
       '@sisques-labs/nestjs-kit':
         specifier: ^1.6.1
