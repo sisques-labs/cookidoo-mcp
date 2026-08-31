@@ -75,7 +75,7 @@ importers:
         specifier: 0.5.1
         version: 0.5.1
       class-validator:
-        specifier: ^0.15.1
+        specifier: 0.15.1
         version: 0.15.1
       dotenv:
         specifier: ^17.4.2
