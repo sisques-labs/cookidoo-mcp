@@ -1,6 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.4.4] - 2026-08-31
+
+### Bug Fixes
+- **deps:** Pin dependency @opentelemetry/sdk-node to 0.221.0 (#172) (340567e)
+- **deps:** Pin dependency @opentelemetry/sdk-trace-base to 2.10.0 (#173) (d4064cd)
+- **deps:** Pin dependency @opentelemetry/semantic-conventions to 1.43.0 (#174) (4013380)
+- **deps:** Pin dependency @opentelemetry/winston-transport to 0.31.0 (#175) (88f5d94)
+- **deps:** Pin dependency @sisques-labs/nestjs-kit to 1.6.1 (#176) (e3b9bca)
+- **deps:** Pin dependency axios to 1.19.0 (#177) (bf1223f)
+- **deps:** Pin dependency class-transformer to 0.5.1 (c89996b)
+- **deps:** Pin dependency class-validator to 0.15.1 (39e0749)
+- **deps:** Pin dependency express to 5.2.1 (95b4557)
+- **deps:** Pin dependency dotenv to 17.4.2 (14cf0a7)
 ## [0.4.3] - 2026-08-26
 
 ### Bug Fixes
