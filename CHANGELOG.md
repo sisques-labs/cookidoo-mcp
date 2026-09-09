@@ -1,6 +1,20 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.4.5] - 2026-09-09
+
+### Bug Fixes
+- **deps:** Pin dependency nest-winston to 1.10.2 (#196) (42adfbf)
+- **deps:** Pin dependency reflect-metadata to 0.2.2 (#197) (e5af0bf)
+- **deps:** Pin dependency rxjs to 7.8.2 (#198) (74a2e4d)
+- **deps:** Pin dependency tough-cookie to 6.0.2 (#199) (a6f7fe3)
+- **deps:** Pin dependency winston to 3.19.0 (#200) (eec6efa)
+- **deps:** Pin dependency winston-daily-rotate-file to 5.0.0 (#201) (fe7e096)
+- **deps:** Pin dependency zod to v4.4.3 (#202) (5cd3930)
+
+### Chore
+- **deps:** Update dependency @nestjs/testing to v11.2.3 (#203) (228aad6)
+- **deps:** Update dependency @typescript-eslint/eslint-plugin to v8.69.0 (#205) (66bf318)
 ## [0.4.4] - 2026-08-31
 
 ### Bug Fixes
