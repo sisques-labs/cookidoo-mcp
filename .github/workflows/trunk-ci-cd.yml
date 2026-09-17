@@ -1,23 +1,22 @@
-name: Release Train
+name: Trunk CI/CD
 
 on:
   push:
-    branches: [develop, staging, main]
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
   packages: write
+  # Only exercised when scan_image: true below, but GitHub validates every
+  # caller's granted permissions against the called reusable workflow's
+  # top-level declaration statically — required unconditionally, same trap
+  # documented for docker-release.yml after it broke a consumer's
+  # release.yml for real.
   security-events: write
 
-# One group for the whole repo: develop/staging/main releases are serialized
-# so two channels never compute versions from a half-updated tag state.
-concurrency:
-  group: release-train
-  cancel-in-progress: false
-
 jobs:
-  release:
-    uses: sisques-labs/workflows/.github/workflows/release-train.yml@main
+  pipeline:
+    uses: sisques-labs/workflows/.github/workflows/trunk-ci-cd.yml@main
     with:
       image_name: sisqueslabs/cookidoo-mcp
       ghcr_image_name: ghcr.io/sisques-labs/cookidoo-mcp
@@ -26,13 +25,11 @@ jobs:
       run_lint: true
       run_test: true
       platforms: linux/amd64,linux/arm64
-      sync_develop_after_stable: true
       scan_image: true
-      sync_dependabot_updates_after_stable: true
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     permissions:
-      contents: write
+      contents: read
       packages: write
       security-events: write
