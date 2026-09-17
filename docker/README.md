@@ -13,9 +13,10 @@ Published images are available on:
 
 | Tag | Description |
 |-----|-------------|
-| `latest` | Latest stable release |
+| `latest` | Most recent stable release, promoted to prod from `main` |
 | `X.Y.Z` | Specific semver release (e.g. `0.3.1`) |
-| `X.Y.Z-alpha.N`, `X.Y.Z-beta.N`, `X.Y.Z-rc.N` | Pre-release channels when published |
+| `sha-<shortsha>` | Continuous build for a single commit on `main` |
+| `edge` | Most recent continuous build on `main` (not yet promoted to a stable release) |
 
 ```bash
 docker pull sisqueslabs/cookidoo-mcp:latest
