@@ -1,6 +1,16 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.5.0] - 2026-09-21
+
+### Chore
+- **deps:** Update dependency @nestjs/testing to v11.2.5 (#222) (5c41877)
+- **deps:** Update dependency prettier to v3.9.8 (#223) (2d6e70b)
+- **deps:** Update dependency @typescript-eslint/eslint-plugin to v8.70.0 (e198c75)
+- **deps:** Update dependency @typescript-eslint/parser to v8.70.0 (fce5741)
+
+### Features
+- **release:** Migrate to trunk-based CI/CD pipeline (02cc49b)
 ## [0.4.5] - 2026-09-09
 
 ### Bug Fixes
