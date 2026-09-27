@@ -27,7 +27,7 @@
     "prepare": "node -e \"if(process.env.HUSKY!=='0')require('child_process').execSync('husky',{stdio:'inherit'})\""
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.30.0",
+    "@modelcontextprotocol/sdk": "1.30.1",
     "@nestjs/common": "11.1.28",
     "@nestjs/config": "4.0.4",
     "@nestjs/core": "11.1.28",
