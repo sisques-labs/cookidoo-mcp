@@ -168,7 +168,7 @@ Authentication is handled by the NestJS process via `COOKIDOO_EMAIL` /
 | `cookidoo_edit_additional_items` | command | Rename free-text items |
 | `cookidoo_add_custom_recipe_ingredients` | command | Add custom recipes' ingredients to the list |
 | `cookidoo_remove_custom_recipe_ingredients` | command | Remove custom recipes' ingredients from the list |
-| `cookidoo_get_calendar_week` | query | Recipes planned on the meal-planner calendar for a week |
+| `cookidoo_get_calendar_week` | query | Recipes planned on the meal-planner calendar for a week, custom recipes included (`resolveCustomRecipes`, default `true`) |
 | `cookidoo_add_recipes_to_calendar` | command | Add recipes to the meal-planner calendar on a day |
 | `cookidoo_remove_recipe_from_calendar` | command | Remove a recipe from the meal-planner calendar on a day |
 | `cookidoo_add_custom_recipes_to_calendar` | command | Add custom recipes to the calendar on a day |

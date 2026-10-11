@@ -15,16 +15,19 @@ export class CalendarGetWeekMcpTool implements IMcpTool {
   readonly name = 'cookidoo_get_calendar_week';
   readonly title = 'Get meal-planner calendar week';
   readonly description =
-    'Returns the recipes planned on the Cookidoo meal-planner calendar for the week containing the given day. One entry per day of that week.';
+    'Returns the recipes planned on the Cookidoo meal-planner calendar for the week containing the given day. One entry per day of that week. Custom (user-created) recipes are included in `recipes` with `isCustom: true` by default.';
   readonly inputSchema = calendarWeekSchema;
 
   constructor(private readonly queryBus: QueryBus) {}
 
   async execute(args: Record<string, unknown>): Promise<CallToolResult> {
-    const { day } = args as { day: string };
+    const { day, resolveCustomRecipes = true } = args as {
+      day: string;
+      resolveCustomRecipes?: boolean;
+    };
     this.logger.log(`Loading calendar week for ${day}`);
     const result = await this.queryBus.execute(
-      new CalendarFindWeekRecipesQuery({ day }),
+      new CalendarFindWeekRecipesQuery({ day, resolveCustomRecipes }),
     );
     return { content: [{ type: 'text', text: JSON.stringify(result) }] };
   }

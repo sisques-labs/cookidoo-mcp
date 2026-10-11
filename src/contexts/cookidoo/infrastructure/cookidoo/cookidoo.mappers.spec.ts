@@ -2,6 +2,7 @@ import { CookidooLocalization } from '@core/config/cookidoo.config';
 import {
   additionalItemFromJson,
   calendarDayFromJson,
+  calendarDayRecipeFromCustomRecipe,
   collectionFromJson,
   constructRecipeUrl,
   customRecipeFromJson,
@@ -242,6 +243,7 @@ describe('cookidoo mappers', () => {
         name: 'Soup',
         totalTime: 1800,
         url: 'https://cookidoo.ch/recipes/recipe/de-CH/r1',
+        isCustom: false,
       });
       expect(result.recipes[0].thumbnail).toContain(
         't_web_shared_recipe_221x240',
@@ -252,6 +254,8 @@ describe('cookidoo mappers', () => {
         totalTime: null,
         thumbnail: null,
         image: null,
+        url: 'https://cookidoo.ch/created-recipes/de-CH/c1',
+        isCustom: true,
       });
       expect(result.customerRecipeIds).toEqual(['c1']);
     });
@@ -264,6 +268,41 @@ describe('cookidoo mappers', () => {
 
       expect(result.recipes).toEqual([]);
       expect(result.customerRecipeIds).toEqual([]);
+    });
+  });
+
+  describe('calendarDayRecipeFromCustomRecipe', () => {
+    const custom = customRecipeFromJson(
+      {
+        recipeId: 'c1',
+        recipeContent: {
+          name: 'My dish',
+          totalTime: 'PT30M',
+          image: 'http://img/{transformation}.jpg',
+        },
+      },
+      localization,
+    );
+
+    it('maps a resolved custom recipe to a calendar entry', () => {
+      const result = calendarDayRecipeFromCustomRecipe(custom);
+
+      expect(result).toMatchObject({
+        id: 'c1',
+        name: 'My dish',
+        totalTime: 1800,
+        url: 'https://cookidoo.ch/created-recipes/de-CH/c1',
+        isCustom: true,
+      });
+      expect(result.thumbnail).toBe(custom.thumbnail);
+      expect(result.image).toBe(custom.image);
+    });
+
+    it('maps an unknown total time to null', () => {
+      expect(
+        calendarDayRecipeFromCustomRecipe({ ...custom, totalTime: 0 })
+          .totalTime,
+      ).toBeNull();
     });
   });
 

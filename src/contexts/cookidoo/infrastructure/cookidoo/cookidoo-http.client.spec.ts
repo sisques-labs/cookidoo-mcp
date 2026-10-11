@@ -233,3 +233,116 @@ describe('CookidooHttpClient (session persistence)', () => {
     ).toBe(false);
   });
 });
+
+describe('CookidooHttpClient (calendar custom recipes)', () => {
+  const WEEK_URL = 'https://cookidoo.es/planning/es-ES/api/my-week/2026-06-22';
+  const customUrl = (id: string) =>
+    `https://cookidoo.es/created-recipes/es-ES/${id}`;
+
+  // The my-week endpoint returns custom recipes only as ids. `c1` is planned
+  // twice, `gone` was deleted after planning and `inline` is returned in full.
+  const week = {
+    myDays: [
+      {
+        id: '2026-06-22',
+        title: 'Monday',
+        recipes: [{ id: 'r1', title: 'Soup', totalTime: 1800 }],
+        customerRecipeIds: ['c1'],
+      },
+      {
+        id: '2026-06-23',
+        title: 'Tuesday',
+        recipes: [],
+        customerRecipeIds: ['c1', 'gone'],
+      },
+      {
+        id: '2026-06-24',
+        title: 'Wednesday',
+        recipes: [],
+        customerRecipes: [{ id: 'inline', title: 'Inline', totalTime: 600 }],
+        customerRecipeIds: ['inline'],
+      },
+    ],
+  };
+
+  function calendarApi(customStatus: (id: string) => number) {
+    return jest.fn((cfg: any) => {
+      if (cfg.method === 'get' && cfg.url === WEEK_URL) {
+        return { status: 200, headers: {}, data: week };
+      }
+      const match = /\/created-recipes\/es-ES\/(\w+)$/.exec(cfg.url);
+      if (cfg.method === 'get' && match) {
+        const status = customStatus(match[1]);
+        return {
+          status,
+          headers: {},
+          data:
+            status === 200
+              ? {
+                  recipeId: match[1],
+                  recipeContent: { name: 'My dish', totalTime: 'PT30M' },
+                }
+              : '',
+        };
+      }
+      return loginChain(cfg);
+    });
+  }
+
+  it('leaves custom recipes as ids by default', async () => {
+    const { client, requests, setHttp } = makeClient();
+    setHttp(calendarApi(() => 200));
+
+    const days = await client.getRecipesInCalendarWeek('2026-06-22');
+
+    expect(days[0].recipes.map((r) => r.id)).toEqual(['r1']);
+    expect(days[0].recipes[0].isCustom).toBe(false);
+    expect(days[0].customerRecipeIds).toEqual(['c1']);
+    expect(days[1].recipes).toEqual([]);
+    expect(requests.some((r) => r.url.includes('/created-recipes/'))).toBe(
+      false,
+    );
+  });
+
+  it('resolves each planned custom recipe once and appends it to its days', async () => {
+    const { client, requests, setHttp } = makeClient();
+    setHttp(calendarApi((id) => (id === 'gone' ? 404 : 200)));
+
+    const days = await client.getRecipesInCalendarWeek('2026-06-22', {
+      resolveCustomRecipes: true,
+    });
+
+    expect(days[0].recipes.map((r) => r.id)).toEqual(['r1', 'c1']);
+    expect(days[0].recipes[1]).toEqual({
+      id: 'c1',
+      name: 'My dish',
+      totalTime: 1800,
+      thumbnail: null,
+      image: null,
+      url: 'https://cookidoo.es/created-recipes/es-ES/c1',
+      isCustom: true,
+    });
+    // The deleted recipe is skipped but stays visible as an id.
+    expect(days[1].recipes.map((r) => r.id)).toEqual(['c1']);
+    expect(days[1].customerRecipeIds).toEqual(['c1', 'gone']);
+    // Already returned inline, so not loaded again.
+    expect(days[2].recipes.map((r) => r.id)).toEqual(['inline']);
+
+    const fetched = (id: string) =>
+      requests.filter((r) => r.url === customUrl(id)).length;
+    expect(fetched('c1')).toBe(1);
+    expect(fetched('gone')).toBe(1);
+    expect(fetched('inline')).toBe(0);
+  });
+
+  it('propagates auth failures while resolving', async () => {
+    const { client, setHttp } = makeClient();
+    setHttp(calendarApi(() => 401));
+
+    await expect(
+      client.getRecipesInCalendarWeek('2026-06-22', {
+        resolveCustomRecipes: true,
+      }),
+    ).rejects.toBeInstanceOf(CookidooAuthException);
+  });
+});

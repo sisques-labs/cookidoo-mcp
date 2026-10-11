@@ -11,6 +11,13 @@ export const calendarWeekSchema = {
   day: daySchema.describe(
     'Any ISO date (YYYY-MM-DD) within the target week; the whole week is returned',
   ),
+  resolveCustomRecipes: z
+    .boolean()
+    .optional()
+    .default(true)
+    .describe(
+      "Load the custom (user-created) recipes planned that week so they appear in each day's `recipes` with `isCustom: true`. Cookidoo returns them only as ids, so set false to skip the extra request per custom recipe.",
+    ),
 };
 
 /** Input schema for the `cookidoo_add_recipes_to_calendar` MCP tool. */

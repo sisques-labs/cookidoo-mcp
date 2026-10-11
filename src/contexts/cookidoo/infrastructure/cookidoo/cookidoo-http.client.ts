@@ -22,7 +22,10 @@ import {
   CookidooAdditionalItem,
   CookidooIngredientItem,
 } from '../../domain/types/cookidoo-shopping-list.type';
-import { CookidooCalendarDay } from '../../domain/types/cookidoo-calendar.type';
+import {
+  CookidooCalendarDay,
+  CookidooCalendarDayRecipe,
+} from '../../domain/types/cookidoo-calendar.type';
 import { CookidooCustomRecipe } from '../../domain/types/cookidoo-custom-recipe.type';
 import {
   CookidooCollection,
@@ -30,6 +33,7 @@ import {
 } from '../../domain/types/cookidoo-collection.type';
 import {
   CookidooAdditionalItemEdit,
+  CookidooCalendarWeekOptions,
   CookidooOwnershipChange,
   ICookidooClient,
 } from '../../domain/interfaces/cookidoo-client.interface';
@@ -41,6 +45,7 @@ import {
 import {
   additionalItemFromJson,
   calendarDayFromJson,
+  calendarDayRecipeFromCustomRecipe,
   collectionFromJson,
   customRecipeFromJson,
   ingredientItemFromJson,
@@ -844,7 +849,10 @@ export class CookidooHttpClient implements ICookidooClient {
     );
   }
 
-  async getRecipesInCalendarWeek(day: string): Promise<CookidooCalendarDay[]> {
+  async getRecipesInCalendarWeek(
+    day: string,
+    options: CookidooCalendarWeekOptions = {},
+  ): Promise<CookidooCalendarDay[]> {
     const result = await this.request<unknown>(
       'get',
       this.buildUrl(RECIPES_IN_CALENDAR_WEEK_PATH, { day }),
@@ -852,7 +860,73 @@ export class CookidooHttpClient implements ICookidooClient {
     );
     const data = this.ensureObject(result, 'loading calendar week');
     const days = this.ensureArray(data.myDays ?? [], 'loading calendar week');
-    return days.map((entry) => calendarDayFromJson(entry, this.localization));
+    const calendarDays = days.map((entry) =>
+      calendarDayFromJson(entry, this.localization),
+    );
+    return options.resolveCustomRecipes
+      ? this.resolveCalendarCustomRecipes(calendarDays)
+      : calendarDays;
+  }
+
+  /**
+   * Append the custom recipes referenced by `customerRecipeIds` to each day.
+   * Ids already present in a day's `recipes` (inline `customerRecipes`) are not
+   * loaded again, and an id planned on several days is requested only once.
+   */
+  private async resolveCalendarCustomRecipes(
+    calendarDays: CookidooCalendarDay[],
+  ): Promise<CookidooCalendarDay[]> {
+    const missingPerDay = calendarDays.map((calendarDay) => {
+      const present = new Set(calendarDay.recipes.map((recipe) => recipe.id));
+      return calendarDay.customerRecipeIds.filter((id) => !present.has(id));
+    });
+    const uniqueIds = [...new Set(missingPerDay.flat())];
+    if (uniqueIds.length === 0) {
+      return calendarDays;
+    }
+
+    const loaded = await Promise.all(
+      uniqueIds.map((id) => this.getCustomRecipeOrNull(id)),
+    );
+    const resolved = new Map<string, CookidooCalendarDayRecipe | null>(
+      uniqueIds.map((id, index) => {
+        const recipe = loaded[index];
+        return [id, recipe ? calendarDayRecipeFromCustomRecipe(recipe) : null];
+      }),
+    );
+
+    return calendarDays.map((calendarDay, index) => ({
+      ...calendarDay,
+      recipes: [
+        ...calendarDay.recipes,
+        ...missingPerDay[index]
+          .map((id) => resolved.get(id))
+          .filter((recipe): recipe is CookidooCalendarDayRecipe => !!recipe),
+      ],
+    }));
+  }
+
+  /**
+   * Load a custom recipe, or `null` if it cannot be loaded (e.g. deleted after
+   * it was planned). Auth failures affect every request, so they still throw.
+   */
+  private async getCustomRecipeOrNull(
+    id: string,
+  ): Promise<CookidooCustomRecipe | null> {
+    try {
+      return await this.getCustomRecipe(id);
+    } catch (error) {
+      if (
+        error instanceof CookidooRequestException ||
+        error instanceof CookidooParseException
+      ) {
+        this.logger.warn(
+          `Could not resolve custom recipe ${id} planned in calendar: ${error.message}`,
+        );
+        return null;
+      }
+      throw error;
+    }
   }
 
   async addRecipesToCalendar(

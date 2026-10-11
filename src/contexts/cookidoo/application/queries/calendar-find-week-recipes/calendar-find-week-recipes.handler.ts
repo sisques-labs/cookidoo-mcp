@@ -17,6 +17,8 @@ export class CalendarFindWeekRecipesQueryHandler implements IQueryHandler<Calend
   async execute(
     query: CalendarFindWeekRecipesQuery,
   ): Promise<CookidooCalendarDay[]> {
-    return this.client.getRecipesInCalendarWeek(query.day);
+    return this.client.getRecipesInCalendarWeek(query.day, {
+      resolveCustomRecipes: query.resolveCustomRecipes,
+    });
   }
 }

@@ -203,6 +203,7 @@ export function recipeDetailsFromJson(
 export function calendarDayRecipeFromJson(
   recipe: Json,
   localization: CookidooLocalization,
+  isCustom = false,
 ): CookidooCalendarDayRecipe {
   const images = recipe.assets?.images;
   const [thumbnail, image] = extractImages(images ? [images] : undefined);
@@ -216,7 +217,11 @@ export function calendarDayRecipeFromJson(
     totalTime,
     thumbnail,
     image,
-    url: constructRecipeUrl(localization, recipe.id),
+    // Custom recipes live under created-recipes; the catalogue path 404s.
+    url: isCustom
+      ? constructRecipeUrl(localization, recipe.id, 'created-recipes')
+      : constructRecipeUrl(localization, recipe.id),
+    isCustom,
   };
 }
 
@@ -230,12 +235,37 @@ export function calendarDayFromJson(
   return {
     id: day.id,
     title: day.title,
-    recipes: [...recipes, ...customerRecipes].map((recipe) =>
-      calendarDayRecipeFromJson(recipe, localization),
-    ),
+    recipes: [
+      ...recipes.map((recipe) =>
+        calendarDayRecipeFromJson(recipe, localization),
+      ),
+      ...customerRecipes.map((recipe) =>
+        calendarDayRecipeFromJson(recipe, localization, true),
+      ),
+    ],
     customerRecipeIds: Array.isArray(day.customerRecipeIds)
       ? day.customerRecipeIds
       : [],
+  };
+}
+
+/**
+ * Fold a resolved custom recipe into a calendar day entry. The `my-week`
+ * endpoint only returns `customerRecipeIds` for custom recipes, so they have to
+ * be loaded separately via the custom-recipe endpoint.
+ */
+export function calendarDayRecipeFromCustomRecipe(
+  recipe: CookidooCustomRecipe,
+): CookidooCalendarDayRecipe {
+  return {
+    id: recipe.id,
+    name: recipe.name,
+    // The custom-recipe mapper uses 0 for "unknown"; calendar entries use null.
+    totalTime: recipe.totalTime || null,
+    thumbnail: recipe.thumbnail,
+    image: recipe.image,
+    url: recipe.url,
+    isCustom: true,
   };
 }
 
@@ -319,16 +349,14 @@ export function collectionFromJson(collection: Json): CookidooCollection {
     id: collection.id,
     name: collection.title,
     description: collection.description ?? null,
-    chapters: chapters.map(
-      (chapter): CookidooChapter => ({
-        name: chapter.title,
-        recipes: (chapter.recipes ?? []).map((recipe: Json) => ({
-          id: recipe.id,
-          name: recipe.title,
-          totalTime: Math.trunc(Number(recipe.totalTime ?? 0)),
-        })),
-      }),
-    ),
+    chapters: chapters.map((chapter): CookidooChapter => ({
+      name: chapter.title,
+      recipes: (chapter.recipes ?? []).map((recipe: Json) => ({
+        id: recipe.id,
+        name: recipe.title,
+        totalTime: Math.trunc(Number(recipe.totalTime ?? 0)),
+      })),
+    })),
   };
 }
 

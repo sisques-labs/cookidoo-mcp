@@ -42,6 +42,11 @@ export const COOKIDOO_CLIENT = Symbol('COOKIDOO_CLIENT');
  * transparently by the adapter (lazy login + re-login on expiry), so callers
  * never deal with sessions or cookies.
  */
+/** Options for {@link ICookidooClient.getRecipesInCalendarWeek}. */
+export interface CookidooCalendarWeekOptions {
+  readonly resolveCustomRecipes?: boolean;
+}
+
 export interface ICookidooClient {
   /** Public profile of the configured account. */
   getUserInfo(): Promise<CookidooUserInfo>;
@@ -84,8 +89,17 @@ export interface ICookidooClient {
   /**
    * Recipes planned on the meal-planner calendar for the week containing the
    * given day (ISO `YYYY-MM-DD`). Returns one entry per day of that week.
+   *
+   * The endpoint returns custom recipes only as `customerRecipeIds`. With
+   * `resolveCustomRecipes`, each unique id is loaded once (concurrently) and
+   * appended to its day's `recipes` with `isCustom: true`; ids that fail to
+   * load (e.g. deleted after planning) are skipped and stay in
+   * `customerRecipeIds`. Off by default: it costs one request per id.
    */
-  getRecipesInCalendarWeek(day: string): Promise<CookidooCalendarDay[]>;
+  getRecipesInCalendarWeek(
+    day: string,
+    options?: CookidooCalendarWeekOptions,
+  ): Promise<CookidooCalendarDay[]>;
 
   /**
    * Add the given recipes to the meal-planner calendar on the given day (ISO
