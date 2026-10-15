@@ -63,8 +63,8 @@ importers:
         specifier: 1.43.0
         version: 1.43.0
       '@opentelemetry/winston-transport':
-        specifier: 0.31.0
-        version: 0.31.0
+        specifier: 0.34.0
+        version: 0.34.0
       '@sisques-labs/nestjs-kit':
         specifier: 1.6.1
         version: 1.6.1(@modelcontextprotocol/sdk@1.32.0(supports-color@8.1.1)(zod@4.4.3))(@nestjs/common@11.2.7(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(@nestjs/config@4.0.4(@nestjs/common@11.2.7(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(rxjs@7.8.2))(@nestjs/core@11.1.28)(@nestjs/cqrs@11.0.3(@nestjs/common@11.2.7(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(@nestjs/core@11.1.28)(reflect-metadata@0.2.2)(rxjs@7.8.2))(express@5.2.1(supports-color@8.1.1))(reflect-metadata@0.2.2)(rxjs@7.8.2)(zod@4.4.3)
@@ -832,6 +832,10 @@ packages:
     resolution: {integrity: sha512-OlanaW1vv7ufTqQ3/fPLI4arGt5ZoM+P8abOMki6uEYnpRazepSWDwDnnw+la7kE26SHVC18//SMccrDvLKOXQ==}
     engines: {node: '>=8.0.0'}
 
+  '@opentelemetry/api-logs@0.223.0':
+    resolution: {integrity: sha512-Oepm6etVPFCn0VWB1t833iOTgz1eYBDUPxcrOR/XvwzD1+Ag9VzSPSrrKAFNJ/haatj+8CXbG47pZXvdNQKDJw==}
+    engines: {node: '>=8.0.0'}
+
   '@opentelemetry/api@1.9.1':
     resolution: {integrity: sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==}
     engines: {node: '>=8.0.0'}
@@ -1301,8 +1305,8 @@ packages:
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
 
-  '@opentelemetry/winston-transport@0.31.0':
-    resolution: {integrity: sha512-higyMoGHbDTNlCX5ue1dJjDQuYSWwC0L4k6x57RKLG0uXdCIdyIu/OQYnjciL+7Kv2XmPMy4VQloeh36NTJTuQ==}
+  '@opentelemetry/winston-transport@0.34.0':
+    resolution: {integrity: sha512-0bfxiBP9KhPd1rKT4hf2ANrEqNW2QaN9N87rDBUzDJB14kztugWNT+1q0seix04PlbzqxAc0jJpOBmoyoY4E/Q==}
     engines: {node: ^18.19.0 || >=20.6.0}
 
   '@paralleldrive/cuid2@2.3.1':
@@ -4929,6 +4933,10 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.1
 
+  '@opentelemetry/api-logs@0.223.0':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+
   '@opentelemetry/api@1.9.1': {}
 
   '@opentelemetry/auto-instrumentations-node@0.79.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(supports-color@8.1.1)':
@@ -5604,9 +5612,9 @@ snapshots:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.10.0(@opentelemetry/api@1.9.1)
 
-  '@opentelemetry/winston-transport@0.31.0':
+  '@opentelemetry/winston-transport@0.34.0':
     dependencies:
-      '@opentelemetry/api-logs': 0.221.0
+      '@opentelemetry/api-logs': 0.223.0
       '@opentelemetry/semantic-conventions': 1.43.0
       winston-transport: 4.9.0
 
